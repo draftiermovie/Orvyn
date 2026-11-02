@@ -1,0 +1,22 @@
+{
+  "app": {
+    "name": "Orvyn",
+    "version": "0.6.0",
+    "description": "Portable AI workspace with Orvyn 1 included"
+  },
+  "model_policy": {
+    "idle_seconds": 1800,
+    "max_loaded": 1,
+    "start_on_launch": false,
+    "default_model": "orvyn-1"
+  },
+  "paths": {
+    "models": "models/desktop-active",
+    "llamafile": "runtime/llamafile/llamafile-0.10.6.exe",
+    "data": "data",
+    "backups": "backups",
+    "logs": "logs/current",
+    "web_ui": "apps/web-ui/dist"
+  },
+  "services": {}
+}

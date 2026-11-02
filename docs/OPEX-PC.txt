@@ -1,0 +1,22 @@
+Opex pc-toegang
+==============
+
+Kies in Opex een projectmap op de USB en klik Project verbinden.
+Chat en Plan voeren geen acties uit. Agent stelt telkens een leesactie,
+bestandswijziging of PowerShell-opdracht voor. Controleer de stap en keur deze
+goed. Klik daarna opnieuw Volgende stap voorstellen voor de vervolgactie.
+
+Bestandsacties controleren dat het pad binnen de gekozen map blijft.
+Wijzigingen tonen een verschil, controleren of de inhoud nog hetzelfde is en
+bewaren het origineel met padinformatie onder backups/opex-*.
+Een nieuw bestand kan alleen in een bestaande map worden aangemaakt.
+PowerShell heeft de rechten van de huidige Windows-gebruiker; dit is geen
+sandbox. Opdrachten kunnen buiten de projectmap werken en internet gebruiken.
+Na 60 seconden wordt de procesboom gestopt. Uitvoer staat onder logs/opex.
+Gedeelde inhoud en uitvoer gaan bij een API-model naar die provider.
+De actiesessie is tijdelijk en verdwijnt bij sluiten van de werkruimte.
+
+Chatmodus (Chat, Plan, Code) wordt bewaard bij je bestaande voorkeuren.
+Het logo is ingebouwd in het Windows-programma en ingesteld op het hoofdvenster.
+Sluit Orvyn en start ORVYN.bat om de bijgewerkte executable te gebruiken.
+Linux-ondersteuning is op verzoek niet toegevoegd.

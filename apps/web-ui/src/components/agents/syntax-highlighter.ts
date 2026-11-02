@@ -1,0 +1,13 @@
+import { createHighlighterCore } from 'shiki/core';
+import { createJavaScriptRegexEngine } from 'shiki/engine/javascript';
+import javascript from 'shiki/dist/langs/javascript.mjs';
+import typescript from 'shiki/dist/langs/typescript.mjs';
+import python from 'shiki/dist/langs/python.mjs';
+import rust from 'shiki/dist/langs/rust.mjs';
+import json from 'shiki/dist/langs/json.mjs';
+import html from 'shiki/dist/langs/html.mjs';
+import css from 'shiki/dist/langs/css.mjs';
+import sql from 'shiki/dist/langs/sql.mjs';
+import bash from 'shiki/dist/langs/bash.mjs';
+import theme from 'shiki/dist/themes/github-dark.mjs';
+export const highlighter=createHighlighterCore({themes:[theme],langs:[javascript,typescript,python,rust,json,html,css,sql,bash],engine:createJavaScriptRegexEngine()});

@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@import "./opex.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #212121;
+  --foreground: #ececec;
+  --card: #2f2f2f;
+  --muted-foreground: #8e8ea0;
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: #10a37f;
+}
+
+.dark {
+  --background: #212121;
+  --foreground: #ececec;
+  --card: #2f2f2f;
+  --muted-foreground: #8e8ea0;
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: #10a37f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-primary: var(--foreground);
+  --color-primary-foreground: var(--background);
+  --color-muted: #3a3a3a;
+  --color-card-foreground: var(--foreground);
+  --color-destructive: #f87171;
+  --color-border-strong: #555;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection {
+    background: rgba(16, 163, 127, 0.3);
+    color: var(--foreground);
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+html[data-contrast="true"] .text-gray-400,
+html[data-contrast="true"] .text-gray-500,
+html[data-contrast="true"] .text-muted-foreground { color: #d1d5db; }
+html[data-contrast="true"] input,
+html[data-contrast="true"] select,
+html[data-contrast="true"] textarea,
+html[data-contrast="true"] button { border-color: #a3a3a3; }
+html[data-reduced-motion="true"] *,
+html[data-reduced-motion="true"] *::before,
+html[data-reduced-motion="true"] *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+/* Calm chat layout, shared by the desktop WebView and browser preview. */
+.chat-main { position: relative; min-height: 0; }
+.chat-header { min-height: 64px; flex-shrink: 0; }
+.chat-messages { scrollbar-width: thin; scrollbar-color: #444 transparent; }
+.chat-composer { flex-shrink: 0; background: #212121; }
+.chat-empty .chat-messages { flex: 0 0 auto; margin-top: auto; overflow: visible; }
+.chat-empty .chat-welcome { padding-top: 32px; padding-bottom: 24px; }
+.chat-empty .chat-composer { margin-bottom: auto; padding-top: 0; }
+.chat-empty .chat-options { margin-bottom: 8px; }
+.chat-options[open] { max-height: 38vh; overflow-y: auto; }
+.orvyn-prompt:focus-within { border-color: #666; }
+.orvyn-sidebar { flex-shrink: 0; }
+.orvyn-sidebar input { border-radius: 10px; }
+.orvyn-sidebar select { background: transparent; color: #a3a3a3; }
+button:focus-visible, summary:focus-visible { outline: 2px solid #79d9c6; outline-offset: 3px; }
+@media (max-width: 900px) {
+ .chat-header { gap: 4px; }
+ .chat-header > div { flex-wrap: wrap; }
+ .chat-welcome h1 { text-align: center; font-size: 1.75rem; }
+ .chat-empty .chat-welcome { padding-top: 20px; }
+ .chat-suggestions { gap: 6px; }
+}
+@media (max-height: 700px) {
+ .chat-empty .chat-messages { margin-top: 0; overflow-y: auto; flex-shrink: 1; }
+ .chat-empty .chat-welcome { padding-top: 16px; padding-bottom: 12px; }
+}
