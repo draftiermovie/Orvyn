@@ -1,0 +1,19 @@
+Built with Llama
+
+Llama 3.2 is licensed under the Llama 3.2 Community License,
+Copyright (c) Meta Platforms, Inc. All Rights Reserved.
+
+Orvyn 1 is an assistant profile using the unchanged Llama 3.2 1B Instruct
+Q4_K_M model distributed by bartowski. It is not a new foundation model.
+Model source and digest: config/custom-models.json
+License: LLAMA-3.2-LICENSE.txt
+Acceptable use policy: LLAMA-3.2-USE-POLICY.txt
+Upstream: https://github.com/meta-llama/llama-models/tree/main/models/llama3_2
+
+The included inference executable is llamafile 0.10.6.
+License notice: LLAMAFILE-LICENSE.txt
+Full Apache License 2.0: APACHE-2.0.txt
+Upstream: https://github.com/mozilla-ai/llamafile/tree/0.10.6
+
+License texts were obtained from their upstream repositories on 2026-11-02.
+These notices do not replace the licenses of the respective components.

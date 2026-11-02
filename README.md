@@ -6,6 +6,8 @@ A portable Windows AI app with Chat and the Opex Work coding workspace. The defa
 
 On the development USB, run `START.bat`. For the portable distribution, open `dist/Orvyn-portable/Orvyn.exe` or its `START.bat`.
 
+For the installation wizard, run `dist/Orvyn-Setup-0.6.0.exe`. It includes Orvyn 1, uses English, and defaults to an Orvyn folder beside the installer. Shortcuts and Windows installed-apps registration are optional. Updates preserve existing configuration and conversations. The included uninstaller keeps settings, models, conversations and backups.
+
 Keep the portable folder together. The model and inference runtime are included alongside the executable; they are not embedded inside the executable. No model download is required for that package. Windows WebView2 must be installed. The application derives its root from its executable location, so the USB drive letter may change.
 
 ## Features
@@ -44,11 +46,14 @@ Pop-Location
 .\scripts\build-desktop.ps1
 .\scripts\deploy-desktop.ps1
 .\scripts\package-portable.ps1
+.\scripts\build-installer.ps1
 ```
 
 Use the existing Rust / Node toolchains. The desktop build expects the USB LLVM/MinGW tools at the path specified in `scripts/build-desktop.ps1`; that script performs an offline Cargo build and therefore needs its USB dependency cache prepared first. `scripts/prepare-cargo-cache.ps1` documents that step. No project installation under AppData or Program Files is needed.
 
 Before packaging, supply the existing llamafile runtime at `runtime/llamafile/llamafile-0.10.6.exe` and the base model at `models/desktop-active/llama32-1b.gguf`, with its verification metadata. The source URL and expected SHA-256 are in `config/custom-models.example.json`. Keep the original model and runtime licenses with any redistribution; they are not replaced by the app name.
+
+The installer build uses an existing [Inno Setup compiler](https://jrsoftware.org/ishelp/topic_compilercmdline.htm); use `-Compiler` if it is not found automatically. Build caches and temporary files stay on the USB. Installer source and bundled notices are in `apps/manager/packaging`. Installer executables and checksums stay under `dist` and are excluded from Git. Built with Llama.
 
 ## Validation
 
@@ -59,6 +64,7 @@ node tests/workspace-ui.mjs
 node tests/opex-work-ui.mjs
 .\scripts\test-workspace-api.ps1
 .\scripts\test-manager.ps1
+.\scripts\test-installer.ps1
 ```
 
 Browser integration tests use test model responses. Native tests exercise real local file operations and PowerShell in isolated folders under `tests`.

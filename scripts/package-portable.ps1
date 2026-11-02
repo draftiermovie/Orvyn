@@ -22,6 +22,8 @@ Copy-PackageFile 'models/desktop-active/llama32-1b.gguf' 'models/desktop-active/
 Copy-PackageFile 'models/desktop-active/llama32-1b.gguf.verified.json' 'models/desktop-active/llama32-1b.gguf.verified.json'
 foreach($name in @('settings','custom-models','model-catalog')){Copy-PackageFile ('config/'+$name+'.example.json') ('config/'+$name+'.json')}
 Copy-Item -Path (Join-Path $root 'apps/web-ui/dist/*') -Destination (Join-Path $target 'apps/web-ui/dist') -Recurse -Force
+New-Item -ItemType Directory -Path (Join-Path $target 'licenses') -Force | Out-Null
+Copy-Item -Path (Join-Path $root 'apps/manager/packaging/licenses/*') -Destination (Join-Path $target 'licenses') -Force
 [IO.File]::WriteAllText((Join-Path $target 'START.bat'),"@echo off`r`nstart `"`" `"%~dp0Orvyn.exe`"`r`n",[Text.Encoding]::ASCII)
-[IO.File]::WriteAllText((Join-Path $target 'README.txt'),'Start Orvyn.exe or START.bat. Keep this folder together: Orvyn 1 is included beside the executable, not embedded in it. No model download is required. The Windows WebView2 runtime is required. Conversations are stored under data. This package does not copy your conversations, API keys, or training data. Model: Llama 3.2 1B Instruct Q4_K_M, distributed by the original publisher under its own license. Source: '+$orvyn.url)
+[IO.File]::WriteAllText((Join-Path $target 'README.txt'),'Start Orvyn.exe or START.bat. Keep this folder together: Orvyn 1 is included beside the executable, not embedded in it. No model download is required. The Windows WebView2 runtime is required. Conversations are stored under data. This package does not copy your conversations, API keys, or training data. Built with Llama. Model: Llama 3.2 1B Instruct Q4_K_M. See the licenses folder for the model and runtime notices. Source: '+$orvyn.url)
 Write-Output "Portable app with Orvyn 1 included: $target"

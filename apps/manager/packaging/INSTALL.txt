@@ -1,0 +1,24 @@
+Orvyn for Windows
+
+Chat and Opex Work, with Orvyn 1 included. Built with Llama.
+
+Requires Windows 10/11 (64-bit) and the Microsoft Edge WebView2 Runtime.
+Orvyn 1 and its inference runtime are included. No model download is needed.
+Allow at least 1.5 GB of free space, plus room for your conversations and files.
+
+Choose a writable folder. The default is an Orvyn folder beside this installer,
+so you can keep everything on your USB. Administrator access is not required.
+Optional desktop and Start menu shortcuts use that installation location.
+If the USB drive letter changes, start Orvyn.exe directly or recreate shortcuts.
+
+Your conversations, settings, models, backups and WebView profile stay inside
+the selected folder. Updating that folder preserves existing settings and data.
+This installer contains no private conversations, API keys or training data.
+
+To remove the app, run unins000.exe in the installation folder. Conversations,
+settings, models and backups are kept. Windows installed-apps registration is
+optional and can be selected during setup.
+
+Orvyn 1 is an assistant profile based on Llama 3.2 1B Instruct Q4_K_M.
+The model license and other bundled notices are in the licenses folder.
+Microsoft Edge WebView2 download: https://developer.microsoft.com/microsoft-edge/webview2/

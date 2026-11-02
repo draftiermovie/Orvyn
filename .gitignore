@@ -38,6 +38,12 @@
 !/apps/manager/Cargo.lock
 !/apps/manager/build.rs
 !/apps/manager/.gitignore
+!/apps/manager/packaging/
+/apps/manager/packaging/*
+!/apps/manager/packaging/installer.iss
+!/apps/manager/packaging/INSTALL.txt
+!/apps/manager/packaging/test-installer.ps1
+!/apps/manager/packaging/licenses/
 
 /config/*
 !/config/*.example.json
