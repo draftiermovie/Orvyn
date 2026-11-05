@@ -77,3 +77,11 @@ Open the USB root as the local repository in GitHub Desktop. Publish it as `orvy
 ## 0.7.0 package variants
 
 Build the standard installer with scripts/build-installer.ps1. Use -WithoutOrvyn1 for Orvyn-Setup-0.7.0-No-Orvyn-1.exe and a separate Orvyn-portable-No-Orvyn-1 staging folder. The latter contains no Orvyn 1 profile or model weights; connect an API or download a model to begin. Existing installations retain their user configuration and models. This packaging release reuses the existing desktop binary; it is not a new native application build.
+
+## License
+
+Orvyn application source and documentation are licensed under the [MIT License](LICENSE). Model weights, llamafile, and third-party dependencies retain their own licenses. Redistribution notices are under `apps/manager/packaging/licenses/`. The MIT license does not replace the Llama license or acceptable-use policy.
+
+## Language
+
+Application labels, messages, prompts, and documentation use English. Response language remains configurable. Existing saved preferences and conversations are preserved. Legacy internal preference values remain unchanged for compatibility. Intentional multilingual training and evaluation examples retain their original language.

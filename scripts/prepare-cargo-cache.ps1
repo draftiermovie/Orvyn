@@ -21,12 +21,12 @@ foreach ($block in ($lock -split '\[\[package\]\]')) {
         if (Test-Path -LiteralPath $existing) { Copy-Item -LiteralPath $existing -Destination $archive }
         else {
             & curl.exe --silent --show-error --fail --location --output $archive "https://static.crates.io/crates/$name/$filename"
-            if ($LASTEXITCODE -ne 0) { throw "Download mislukt: $name" }
+            if ($LASTEXITCODE -ne 0) { throw "Download failed: $name" }
         }
     }
-    if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLower() -ne $checksum) { throw "Checksum mislukt: $name" }
+    if ((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLower() -ne $checksum) { throw "Checksum failed: $name" }
     & tar.exe -xmzf $archive -C $sources
-    if ($LASTEXITCODE -ne 0) { throw "Uitpakken mislukt: $name" }
+    if ($LASTEXITCODE -ne 0) { throw "Extraction failed: $name" }
     [IO.File]::WriteAllText((Join-Path $target '.cargo-ok'),'{"v":1}')
     $count++
 }

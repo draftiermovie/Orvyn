@@ -2,6 +2,7 @@
 name = "ai-usb-manager"
 version = "0.7.0"
 edition = "2021"
+license = "MIT"
 description = "AI USB Service Manager"
 
 [dependencies]
