@@ -6,7 +6,7 @@ A portable Windows AI app with Chat and the Opex Work coding workspace. The defa
 
 On the development USB, run `START.bat`. For the portable distribution, open `dist/Orvyn-portable/Orvyn.exe` or its `START.bat`.
 
-For the installation wizard, run `dist/Orvyn-Setup-0.6.0.exe`. It includes Orvyn 1, uses English, and defaults to an Orvyn folder beside the installer. Shortcuts and Windows installed-apps registration are optional. Updates preserve existing configuration and conversations. The included uninstaller keeps settings, models, conversations and backups.
+For the installation wizard, run `dist/Orvyn-Setup-0.7.0.exe`. It includes Orvyn 1, uses English, and defaults to an Orvyn folder beside the installer. Shortcuts and Windows installed-apps registration are optional. Updates preserve existing configuration and conversations. The included uninstaller keeps settings, models, conversations and backups.
 
 Keep the portable folder together. The model and inference runtime are included alongside the executable; they are not embedded inside the executable. No model download is required for that package. Windows WebView2 must be installed. The application derives its root from its executable location, so the USB drive letter may change.
 
@@ -73,3 +73,7 @@ Browser integration tests use test model responses. Native tests exercise real l
 ## GitHub Desktop
 
 Open the USB root as the local repository in GitHub Desktop. Publish it as `orvyn` and keep **Keep this code private** selected unless you intend to make the source public. Review the source-only file list before publishing. Never force-add ignored credentials, conversations, or model files.
+
+## 0.7.0 package variants
+
+Build the standard installer with scripts/build-installer.ps1. Use -WithoutOrvyn1 for Orvyn-Setup-0.7.0-No-Orvyn-1.exe and a separate Orvyn-portable-No-Orvyn-1 staging folder. The latter contains no Orvyn 1 profile or model weights; connect an API or download a model to begin. Existing installations retain their user configuration and models. This packaging release reuses the existing desktop binary; it is not a new native application build.
