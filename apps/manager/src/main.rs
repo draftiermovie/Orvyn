@@ -3,6 +3,7 @@ mod core;
 mod web;
 mod models;
 mod providers;
+mod store;
 mod custom_models;
 mod workspace;
 mod web_pages;

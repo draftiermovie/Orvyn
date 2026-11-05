@@ -19,7 +19,7 @@ fn prepare_profile(body:&mut Value,entry:Option<&Value>)->String {
 }
 pub fn catalog(root:&Path)->Result<Vec<Value>> {
     let mut models=vec![];
-    for name in ["model-catalog.json","custom-models.json"]{
+    for name in ["model-catalog.json","custom-models.json","store-models.json"]{
         let file=root.join("config").join(name);if !file.exists(){continue;}
         models.extend(core::read_json(&file)?["models"].as_array().cloned().ok_or("Ongeldige modelcatalogus")?);
     }
@@ -48,7 +48,7 @@ fn model_path(cfg:&Value,key:&str)->Option<PathBuf>{
     let index=args.iter().position(|v|v=="--model")?;
     args.get(index+1)?.as_str().map(PathBuf::from)
 }
-fn downloaded_file_valid(path:&Path,metadata:&Value)->bool{
+pub(crate) fn downloaded_file_valid(path:&Path,metadata:&Value)->bool{
     fs::metadata(path).is_ok_and(|v|metadata["bytes"].as_u64().unwrap_or(0)==0||Some(v.len())==metadata["bytes"].as_u64()) && core::read_json(&path.with_extension("gguf.verified.json")).is_ok_and(|v|v["sha256"]==metadata["sha256"])
 }
 fn is_installed(cfg:&Value,key:&str,entry:Option<&Value>)->bool {
@@ -129,7 +129,7 @@ impl Runtime {
             let installed=is_installed(&cfg,key,entry);let online=installed&&core::service_owned(&cfg,key)&&core::online(&cfg,key);
             let category=entry.and_then(|m|m["category"].as_str()).unwrap_or(if key=="glm-ocr"{"vision"}else{"reasoning"});
             let status=if state.active.as_ref()==Some(key){state.phase.as_str()}else if online{"loaded"}else if installed{"unloaded"}else{"not_installed"};
-            result[key]=json!({"name":svc["name"],"type":if category=="vision"{"vision"}else{"chat"},"category":category,"description":entry.and_then(|m|m["description"].as_str()).unwrap_or(if key=="glm-ocr"{"Tekstherkenning uit afbeeldingen"}else{"Qwen3 Thinking voor redeneren en Nederlandse chat"}),"installed":installed,"online":online,"status":status,"bytes":entry.and_then(|m|m["bytes"].as_u64()).filter(|b|*b>0).or_else(||model_path(&cfg,key).and_then(|p|fs::metadata(p).ok().map(|m|m.len()))).unwrap_or(0),"custom":entry.is_some_and(|m|m["origin"]=="custom"||m["origin"]=="local"),"can_download":entry.is_some_and(|m|m["url"].is_string()),"tokens_used":state.tokens.get(key).copied().unwrap_or(0),"tokens_limit":2000000});
+            result[key]=json!({"name":svc["name"],"type":if category=="vision"{"vision"}else{"chat"},"category":category,"description":entry.and_then(|m|m["description"].as_str()).unwrap_or(if key=="glm-ocr"{"Tekstherkenning uit afbeeldingen"}else{"Qwen3 Thinking voor redeneren en Nederlandse chat"}),"installed":installed,"online":online,"status":status,"bytes":entry.and_then(|m|m["bytes"].as_u64()).filter(|b|*b>0).or_else(||model_path(&cfg,key).and_then(|p|fs::metadata(p).ok().map(|m|m.len()))).unwrap_or(0),"custom":entry.is_some_and(|m|m["origin"]=="custom"||m["origin"]=="local"),"store":entry.is_some_and(|m|m["origin"]=="store"),"downloads":entry.and_then(|m|m["downloads"].as_u64()).unwrap_or(0),"can_download":entry.is_some_and(|m|m["url"].is_string()),"tokens_used":state.tokens.get(key).copied().unwrap_or(0),"tokens_limit":2000000});
             if let Some(bytes)=entry.and_then(|m|m["projector"]["bytes"].as_u64()){result[key]["bytes"]=json!(result[key]["bytes"].as_u64().unwrap_or(0)+bytes);}
         }
         result.as_object_mut().unwrap().extend(self.providers.catalog()?.as_object().unwrap().clone());
@@ -235,6 +235,13 @@ impl Runtime {
         if data["action"]=="resume"{self.queue_paused.store(false,Ordering::Relaxed);}
         else if data["action"]=="remove"{self.queue.lock().map_err(err)?.retain(|id|Some(id.as_str())!=data["id"].as_str());}
         Ok(())
+    }
+    /// Zoekt modellen via de Hugging Face-API voor de bibliotheek.
+    pub fn store_search(&self,data:&Value)->Result<Value>{
+        let mut busy=self.queue.lock().map_err(err)?.clone();
+        {let job=self.download.lock().map_err(err)?;if let Some(id)=job["id"].as_str(){busy.push(id.to_string());}}
+        let loaded={let state=self.state.lock().map_err(err)?;state.active.is_some()};
+        crate::store::search(&self.root,data,&busy,loaded)
     }
     fn advance_queue(self:&Arc<Self>){
         if self.queue_paused.load(Ordering::Relaxed){return;}

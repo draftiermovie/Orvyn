@@ -477,14 +477,27 @@ pub fn backup(cfg: &Value) -> Result<PathBuf> {
         zip.write_all(value.to_string().as_bytes()).map_err(err)?;
     }
     if let Some(root)=cfg["_root"].as_str(){
-        for name in ["custom-models.json","api-providers.json"]{let file=Path::new(root).join("config").join(name);if file.exists(){zip.start_file(name,opts).map_err(err)?;zip.write_all(&fs::read(file).map_err(err)?).map_err(err)?;}}
+        for name in ["custom-models.json","store-models.json","api-providers.json"]{let file=Path::new(root).join("config").join(name);if file.exists(){zip.start_file(name,opts).map_err(err)?;zip.write_all(&fs::read(file).map_err(err)?).map_err(err)?;}}
     }
     zip.finish().map_err(err)?;
     Ok(file)
 }
 pub fn restore(cfg: &Value, root: &Path, file: &Path) -> Result<String> {
+    fn catalog_valid(data: &Value) -> bool {
+        data["models"].as_array().is_some_and(|entries| {
+            entries.iter().all(|m| {
+                m["id"].is_string()
+                    && m["file"].as_str().is_some_and(|f| {
+                        f.ends_with(".gguf")
+                            && f.bytes()
+                                .all(|b| b.is_ascii_alphanumeric() || b"._-".contains(&b))
+                    })
+            })
+        })
+    }
     let mut zip = zip::ZipArchive::new(File::open(file).map_err(err)?).map_err(err)?;
     let has_custom=zip.file_names().any(|name|name=="custom-models.json");
+    let has_store=zip.file_names().any(|name|name=="store-models.json");
     let has_providers=zip.file_names().any(|name|name=="api-providers.json");
     let mut read = |name: &str| -> Result<Value> {
         let mut entry = zip.by_name(name).map_err(err)?;
@@ -502,8 +515,12 @@ pub fn restore(cfg: &Value, root: &Path, file: &Path) -> Result<String> {
     validate(&restored)?;
     let mut state = read("chats.json")?;
     let custom=if has_custom{Some(read("custom-models.json")?)}else{None};
+    let store=if has_store{Some(read("store-models.json")?)}else{None};
     if let Some(ref custom)=custom{
-        if !custom["models"].as_array().is_some_and(|entries|entries.iter().all(|m|m["id"].is_string()&&m["file"].as_str().is_some_and(|f|f.ends_with(".gguf")&&f.bytes().all(|b|b.is_ascii_alphanumeric()||b"._-".contains(&b))))){return Err("Ongeldige eigen-modelcatalogus in back-up".into());}
+        if !catalog_valid(custom){return Err("Ongeldige eigen-modelcatalogus in back-up".into());}
+    }
+    if let Some(ref store)=store{
+        if !catalog_valid(store){return Err("Ongeldige modelwinkel-catalogus in back-up".into());}
     }
     if !state["chats"].is_array() {
         return Err("Ongeldige gesprekken".into());
@@ -517,6 +534,7 @@ pub fn restore(cfg: &Value, root: &Path, file: &Path) -> Result<String> {
     )?;
     atomic(&root.join("config/settings.json"), &restored)?;
     if let Some(custom)=custom{atomic(&root.join("config/custom-models.json"),&custom)?;}
+    if let Some(store)=store{atomic(&root.join("config/store-models.json"),&store)?;}
     if let Some(providers)=providers{atomic(&root.join("config/api-providers.json"),&providers)?;}
     Ok(format!(
         "Hersteld. Vorige versie: {}. Herlaad chats en herstart betrokken services.",

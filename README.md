@@ -13,6 +13,7 @@ Keep the portable folder together. The model and inference runtime are included 
 ## Features
 
 - Chat with the included Orvyn 1 model or connect an OpenAI-compatible API, including OpenRouter.
+- AI library: the library searches the Hugging Face API for GGUF models, sorts them into the Chat, Code, Reasoning and Vision categories, and downloads the chosen model to the USB with SHA-256 verification through the existing download queue.
 - Opex Work: persistent tasks, project browsing, a task timeline, reviewed changes, backups, live terminal output, and a stop button.
 - Plan mode for discussion without executing model actions. Work pauses after eight automatic steps.
 - Settings, startup diagnostics, training reports, document tools, and a working-copy editor.

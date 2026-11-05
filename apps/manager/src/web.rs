@@ -153,6 +153,7 @@ pub fn run(root: PathBuf, smoke: bool) -> Result<()> {
                             if url=="/api/speech"{return Ok((crate::workspace::speech(&data)?,200));}
                             if url=="/api/open-url"{return Ok((crate::workspace::open_url(&data)?,200));}
                             if url=="/api/models/custom"{let id=crate::custom_models::remote(&root,&data)?;return Ok((json!({"id":id}),201));}
+                            if url=="/api/models/store"{return Ok((runtime.store_search(&data)?,200));}
                             if url=="/api/models/import"{let id=runtime.import_model(&data)?;return Ok((json!({"id":id}),202));}
                             if url=="/api/models/clear-selection"{let slot=data["slot"].as_str().unwrap_or("model");if ["model","projector"].contains(&slot){runtime.select_file(slot,None);}return Ok((json!({"ok":true}),200));}
                             if url=="/api/models/download"{runtime.enqueue(data["id"].as_str().ok_or("Model-id ontbreekt")?)?;return Ok((json!({"ok":true}),202));}
