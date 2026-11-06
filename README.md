@@ -44,13 +44,14 @@ Push-Location apps/web-ui
 npm ci
 Pop-Location
 .\scripts\build-ui.ps1
+.\scripts\prepare-cargo-cache.ps1
 .\scripts\build-desktop.ps1
 .\scripts\deploy-desktop.ps1
 .\scripts\package-portable.ps1
 .\scripts\build-installer.ps1
 ```
 
-Use the existing Rust / Node toolchains. The desktop build expects the USB LLVM/MinGW tools at the path specified in `scripts/build-desktop.ps1`; that script performs an offline Cargo build and therefore needs its USB dependency cache prepared first. `scripts/prepare-cargo-cache.ps1` documents that step. No project installation under AppData or Program Files is needed.
+Use the existing Rust / Node toolchains. The desktop scripts detect the installed Rust host. MSVC Rust uses an existing Visual Studio C++ workload and Windows SDK; GNU Rust uses the project-local LLVM/MinGW tools. Run `scripts/prepare-cargo-cache.ps1` once with internet access to populate the project-local registry index and locked dependency archives. Builds and native tests then run with `--locked --offline`. `scripts/rust-environment.ps1` initializes compiler paths for the current process only. No project installation under AppData or Program Files is needed.
 
 Before packaging, supply the existing llamafile runtime at `runtime/llamafile/llamafile-0.10.6.exe` and the base model at `models/desktop-active/llama32-1b.gguf`, with its verification metadata. The source URL and expected SHA-256 are in `config/custom-models.example.json`. Keep the original model and runtime licenses with any redistribution; they are not replaced by the app name.
 

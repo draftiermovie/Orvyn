@@ -304,5 +304,25 @@ fn idle_due(active:bool,elapsed:Duration,limit:u64)->bool{active&&elapsed>=Durat
         assert_eq!(prepare_profile(&mut ordinary,None),CHAT_INSTRUCTIONS);
         assert_eq!(ordinary,json!({"max_tokens":1500}));
     }
-    #[test]fn catalog_is_complete(){let root=core::root().unwrap();let entries=catalog(&root).unwrap();assert!(entries.len()>=19);assert!(entries.iter().any(|m|m["id"]=="mimo-7b"));for m in entries{assert_eq!(m["sha256"].as_str().unwrap().len(),64);if m["origin"]!="local"{assert!(m["url"].as_str().unwrap().starts_with("https://"));}}assert!(core::config(&root).unwrap()["services"].as_object().unwrap().len()>=21);}
+    #[test]fn catalog_is_complete(){
+        let project=core::root().unwrap();
+        let root=project.join("tools/temp").join(format!("catalog-{}",core::id()));
+        fs::create_dir_all(root.join("config")).unwrap();
+        for name in ["settings","custom-models","model-catalog"]{
+            fs::copy(project.join(format!("config/{name}.example.json")),root.join(format!("config/{name}.json"))).unwrap();
+        }
+        let entries=catalog(&root).unwrap();
+        assert_eq!(entries.len(),1);
+        assert_eq!(entries[0]["id"],"orvyn-1");
+        for m in entries{
+            let sha=m["sha256"].as_str().unwrap();
+            assert_eq!(sha.len(),64);
+            assert!(sha.bytes().all(|b|b.is_ascii_hexdigit()));
+            assert!(m["url"].as_str().unwrap().starts_with("https://"));
+        }
+        let cfg=core::config(&root).unwrap();
+        assert_eq!(cfg["services"].as_object().unwrap().len(),1);
+        assert!(cfg["services"]["orvyn-1"].is_object());
+        fs::remove_dir_all(root).unwrap();
+    }
 }

@@ -150,11 +150,11 @@ pub fn open_url(data:&Value)->Result<Value>{
     #[test]fn index_tracks_changes_with_usb_relative_paths(){
         let root=core::root().unwrap().join("tools/temp").join(format!("index-{}",core::id()));fs::create_dir_all(root.join("source")).unwrap();fs::write(root.join("source/a.txt"),"A car drives on the road.").unwrap();
         assert!(index_folder(&root,&json!({"folder":".."})).is_err());
-        let folders=index_folder(&root,&json!({"folder":"source","collection":"Verkeer"})).unwrap();assert_eq!(folders[0]["folder"],"source");
+        let folders=index_folder(&root,&json!({"folder":"source","collection":"Traffic"})).unwrap();assert_eq!(folders[0]["folder"],"source");
         let scan=scan_index(&root).unwrap();let mut doc=scan["files"][0].clone();assert_eq!(doc["source"],"source\\a.txt");doc["text"]=json!("A car drives on the road.");import_document(&root,&doc).unwrap();
         assert_eq!(scan_index(&root).unwrap()["files"].as_array().unwrap().len(),0);
-        assert_eq!(search(&root,&json!({"query":"voertuig","terms":"auto","collection":"Verkeer"})).unwrap().as_array().unwrap().len(),1);
-        assert_eq!(search(&root,&json!({"query":"auto","collection":"School"})).unwrap().as_array().unwrap().len(),0);
+        assert_eq!(search(&root,&json!({"query":"vehicle","terms":"car","collection":"Traffic"})).unwrap().as_array().unwrap().len(),1);
+        assert_eq!(search(&root,&json!({"query":"car","collection":"School"})).unwrap().as_array().unwrap().len(),0);
         fs::write(root.join("source/a.txt"),"An updated text").unwrap();assert_eq!(scan_index(&root).unwrap()["files"].as_array().unwrap().len(),1);
         fs::remove_file(root.join("source/a.txt")).unwrap();scan_index(&root).unwrap();assert_eq!(documents(&root).unwrap().as_array().unwrap().len(),0);fs::remove_dir_all(root).unwrap();
     }

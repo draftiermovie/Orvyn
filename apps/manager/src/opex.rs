@@ -173,13 +173,13 @@ mod tests{
         let result=action(&root,&data).unwrap();
         assert_eq!(fs::read_to_string(dir.join("sample.txt")).unwrap(),"after");
         assert_eq!(fs::read_to_string(Path::new(result["backup"].as_str().unwrap()).join("original.txt")).unwrap(),"before");
-        assert!(action(&root,&data).unwrap_err().contains("gewijzigd"));
+        assert!(action(&root,&data).unwrap_err().contains("changed"));
         data=json!({"folder":dir,"action":"read","path":"new.txt"});
         assert_eq!(action(&root,&data).unwrap()["exists"],false);
         fs::remove_file(dir.join("sample.txt")).unwrap();fs::remove_dir(dir).unwrap();
     }
     #[test] fn traversal_rejected(){assert!(target(Path::new("E:/"),"../secret").is_err());assert!(target(Path::new("E:/"),"C:/test").is_err());assert!(target(Path::new("E:/"),"test:stream").is_err());}
-    #[test] fn approval_required(){let root=core::root().unwrap();let data=json!({"folder":root,"action":"run","command":"exit 0"});assert!(action(&root,&data).unwrap_err().contains("Bevestig"));}
+    #[test] fn approval_required(){let root=core::root().unwrap();let data=json!({"folder":root,"action":"run","command":"exit 0"});assert!(action(&root,&data).unwrap_err().contains("Confirm"));}
     #[test] fn malformed_proposals_are_blocked(){
         for v in [json!(null),json!([]),json!({"action":"delete","path":"x"}),json!({"action":"run","command":" "}),json!({"action":"read","path":7}),json!({"action":"run","command":"echo x","approved":true}),json!({"answer":"ok","action":"run","command":"echo x"}),json!({"action":"write","path":"x"})]{assert!(proposal(&v).is_err(),"{v}");}
         for p in ["../x","a/../../x","C:\\x","\\\\host\\share","NUL.txt","x:stream","a/CON","a/","x.","x\n"]{assert!(proposal(&json!({"action":"read","path":p})).is_err(),"{p}");}
