@@ -86,3 +86,7 @@ Orvyn application source and documentation are licensed under the [MIT License](
 ## Language
 
 Application labels, messages, prompts, and documentation use English. Response language remains configurable. Existing saved preferences and conversations are preserved. Legacy internal preference values remain unchanged for compatibility. Intentional multilingual training and evaluation examples retain their original language.
+
+## GitHub collaboration
+
+See [GitHub Actions and issues](docs/GITHUB.md) for CI checks and issue forms, and the [improvement backlog](docs/ISSUE-BACKLOG.md) for ready-to-file issue drafts.
