@@ -1,6 +1,6 @@
 import { chromium, expect } from '../apps/web-ui/node_modules/@playwright/test/index.mjs';
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import JSZip from '../apps/web-ui/node_modules/jszip/lib/index.js';
@@ -19,6 +19,7 @@ const server=createServer(async(req,res)=>{
 });
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 const browser=await chromium.launch({channel:'msedge',headless:true});
+let projectFixtureRoot;
 try{
   const page=await browser.newPage({viewport:{width:1400,height:1000}});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
@@ -143,8 +144,13 @@ try{
   await page.getByLabel('Search conversations').fill('');
   await page.getByRole('button',{name:'Workspace',exact:true}).click();
   await page.getByRole('button',{name:'Project',exact:true}).click();
-  // Folder upload traverses the USB filesystem; cold reads may exceed 30 seconds.
-  await page.getByLabel('Choose project folder').setInputFiles(resolve(root,'tests/fixtures/project-context'),{timeout:90000});
+  // Create the upload fixture from source so clean checkouts need no ignored files.
+  projectFixtureRoot=await mkdtemp(resolve(root,'tests/workspace-fixtures-'));
+  const projectDirectory=resolve(projectFixtureRoot,'project-context');
+  await mkdir(projectDirectory);
+  await writeFile(resolve(projectDirectory,'example.py'),'PROJECT_CONTEXT_MARKER = "workspace UI fixture"\n\ndef greet(name: str) -> str:\n    return f"Hello, {name}!"\n','utf8');
+  // Folder upload traverses the filesystem; cold reads may exceed 30 seconds.
+  await page.getByLabel('Choose project folder').setInputFiles(projectDirectory,{timeout:90000});
   await page.getByLabel(/project-context\/example.py/).check();
   await expect.poll(()=>state.workbench?.project?.[0]?.selected).toBe(true);
   await page.getByRole('complementary',{name:'Workspace'}).getByRole('button',{name:'Opex',exact:true}).click();
@@ -370,7 +376,13 @@ try{
 
   expect(errors).toEqual([]);
   console.log('UI integration passed, including real SSE chunks, syntax highlighting, QuickJS isolation/time limits, diffs, tasks, branching, pins, and temporary storage.');
-}finally{await browser.close();await new Promise(r=>{server.close(r);server.closeAllConnections();});}
+}finally{
+  try{await browser.close();}finally{
+    try{await new Promise(r=>{server.close(r);server.closeAllConnections();});}finally{
+      if(projectFixtureRoot)await rm(projectFixtureRoot,{recursive:true,force:true});
+    }
+  }
+}
 
 function makePdf(text){
   const stream=`BT /F1 12 Tf 40 700 Td (${text}) Tj ET`;
