@@ -18,7 +18,7 @@
 
 <p align="center">
   <a href="https://github.com/draftiermovie/Orvyn/actions/workflows/ci.yml"><img src="https://github.com/draftiermovie/Orvyn/actions/workflows/ci.yml/badge.svg" alt="CI build and tests"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-99e3cd" alt="MIT license"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Free%20redistribution-99e3cd" alt="Custom license: free redistribution, no resale"></a>
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-2563eb" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/Built%20with-Rust%20%2B%20React-e7b880" alt="Built with Rust and React">
 </p>
@@ -97,9 +97,9 @@ The source repository excludes model weights and the inference runtime. Connect 
 
 ## License and attribution
 
-Orvyn application source and documentation are licensed under the **[MIT License](LICENSE)**. You may use, modify, and redistribute them under its terms.
+Orvyn application source and documentation are offered under the custom **[Orvyn Free Redistribution License 1.0](LICENSE)**. You may use and modify covered material, and share copies **free of charge**. Selling copies, charging for downloads, or bundling covered material into paid distributions requires separate written permission. See the [licensing guide](docs/LICENSING.md), including the continuing rights for earlier MIT releases.
 
-**Orvyn 1** is an assistant profile based on **Llama 3.2 1B Instruct Q4_K_M**, not a newly trained foundation model. **Built with Llama.** Model weights, llamafile, and other dependencies retain their own licenses and notices. The MIT license does not replace the Llama license or acceptable-use policy; keep the [bundled third-party notices](apps/manager/packaging/licenses) when redistributing relevant components. Experimental training candidates are not activated automatically.
+**Orvyn 1** is an assistant profile based on **Llama 3.2 1B Instruct Q4_K_M**, not a newly trained foundation model. **Built with Llama.** Model weights, llamafile, and other dependencies retain their own licenses and notices. The Orvyn license does not replace the Llama license or acceptable-use policy; keep the [bundled third-party notices](apps/manager/packaging/licenses) when redistributing relevant components. Experimental training candidates are not activated automatically.
 
 ## Support and contributing
 

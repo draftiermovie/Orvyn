@@ -1,3 +1,7 @@
+Historical notice for Orvyn material previously offered under MIT.
+This notice preserves the earlier grant; it does not license new material
+expressly released under the Orvyn Free Redistribution License.
+
 MIT License
 
 Copyright (c) 2026 Orvyn contributors

@@ -41,7 +41,7 @@ MinVersion=10.0
 CloseApplications=yes
 RestartApplications=no
 InfoBeforeFile={#Package}\README.txt
-LicenseFile={#Root}\apps\manager\packaging\licenses\LLAMA-3.2-LICENSE.txt
+LicenseFile={#Root}\LICENSE
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]

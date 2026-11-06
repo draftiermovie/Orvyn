@@ -6,7 +6,7 @@ These are issue drafts for review, not published GitHub issues. Priorities are p
 
 **Priority:** High
 
-The current installer EXEs reuse an older desktop executable. The current source includes the model library, English text, MIT notices, and a repaired native build.
+The current installer EXEs reuse an older desktop executable. The current source includes the model library, English text, application license notices, and a repaired native build.
 
 **Acceptance criteria**
 
