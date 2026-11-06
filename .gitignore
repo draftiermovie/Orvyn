@@ -99,3 +99,6 @@
 !/.github/
 !/docs/GITHUB.md
 !/docs/ISSUE-BACKLOG.md
+
+# Detailed development guide
+!/docs/DEVELOPMENT.md
