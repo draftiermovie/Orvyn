@@ -13,6 +13,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+defaults:
+  run:
+    shell: pwsh
+
 jobs:
   windows-web:
     name: Windows web build and browser tests
@@ -20,9 +24,6 @@ jobs:
     timeout-minutes: 25
     env:
       ORVYN_BROWSER_CHANNEL: msedge
-    defaults:
-      run:
-        shell: pwsh
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -67,9 +68,6 @@ jobs:
     name: Windows native tests and build
     runs-on: windows-2022
     timeout-minutes: 45
-    defaults:
-      run:
-        shell: pwsh
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -102,11 +100,11 @@ jobs:
     name: Linux web build and browser tests
     runs-on: ubuntu-24.04
     timeout-minutes: 25
-    env:
-      ORVYN_BROWSER_CHANNEL: bundled
     defaults:
       run:
         shell: bash
+    env:
+      ORVYN_BROWSER_CHANNEL: bundled
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
