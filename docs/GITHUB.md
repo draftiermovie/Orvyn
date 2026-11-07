@@ -13,6 +13,10 @@ CI uses mocked browser responses and isolated native test fixtures. The two nati
 
 After these files are committed and pushed, open the repository's Actions tab to inspect the first run. Hosted-runner execution cannot be confirmed by local tests alone. For branch protection, use the check names `Web build and browser tests` and `Windows native tests and build` after they first appear.
 
+## macOS CI
+
+The separate **macOS CI** workflow runs on pull requests, pushes to `main`, and manual dispatches. It builds and tests on Apple Silicon and Intel runners and checks that the packaged webview opens. The release workflow calls the same jobs with archive uploads enabled.
+
 ## Issues
 
 The New issue page offers bug-report and feature-request forms. Bug reports request version, installation type, Windows/hardware details, reproduction steps, expected behavior, actual behavior, and redacted evidence. Feature requests ask for the problem, proposed behavior, and acceptance criteria. Blank issues remain available.
