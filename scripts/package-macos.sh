@@ -14,7 +14,7 @@ version=$(node -p 'require("./config/settings.example.json").app.version')
 commit=$(git rev-parse HEAD)
 binary=apps/manager/build-usb/release/ai-usb-manager
 [[ -x $binary && -f apps/web-ui/dist/index.html ]]
-lipo -verify_arch "$arch" "$binary"
+lipo "$binary" -verify_arch "$arch"
 
 mkdir -p dist
 stage=$(mktemp -d "$root/dist/macos-${arch}.XXXXXX")
