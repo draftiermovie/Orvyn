@@ -234,7 +234,7 @@ pub fn open_url(data:&Value)->Result<Value>{
         let root=core::root().unwrap().join("tools/temp").join(format!("index-{}",core::id()));fs::create_dir_all(root.join("source")).unwrap();fs::write(root.join("source/a.txt"),"A car drives on the road.").unwrap();
         assert!(index_folder(&root,&json!({"folder":".."})).is_err());
         let folders=index_folder(&root,&json!({"folder":"source","collection":"Traffic"})).unwrap();assert_eq!(folders[0]["folder"],"source");
-        let scan=scan_index(&root).unwrap();let mut doc=scan["files"][0].clone();assert_eq!(doc["source"],"source\\a.txt");doc["text"]=json!("A car drives on the road.");import_document(&root,&doc).unwrap();
+        let scan=scan_index(&root).unwrap();let mut doc=scan["files"][0].clone();let expected_source=Path::new("source").join("a.txt").to_string_lossy().to_string();assert_eq!(doc["source"],expected_source);doc["text"]=json!("A car drives on the road.");import_document(&root,&doc).unwrap();
         assert_eq!(scan_index(&root).unwrap()["files"].as_array().unwrap().len(),0);
         assert_eq!(search(&root,&json!({"query":"vehicle","terms":"car","collection":"Traffic"})).unwrap().as_array().unwrap().len(),1);
         assert_eq!(search(&root,&json!({"query":"car","collection":"School"})).unwrap().as_array().unwrap().len(),0);
