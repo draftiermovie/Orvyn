@@ -1,6 +1,6 @@
 "use client";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { api, defaultPreferences, gb, type Hardware, type Preferences } from "@/lib/workspace";
+import { api, defaultPreferences, gb, responseTokenLimits, type Hardware, type Preferences } from "@/lib/workspace";
 import { LogoChoices } from "./logo-choices";
 import { ApiProviders } from "./api-providers";
 const StartupDiagnostics=lazy(()=>import('./startup-diagnostics'));
@@ -13,7 +13,7 @@ export function AppSettings({open,onClose,preferences:p,onChange,hardware,onRefr
   async function run(job:()=>Promise<void>){setBusy(true);setMessage("");try{await job();}catch(e){setMessage(String(e));}finally{setBusy(false);}}
   return <dialog ref={ref} onCancel={onClose} onClose={onClose} aria-labelledby="settings-title" className="m-auto max-h-[90vh] w-[min(850px,94vw)] overflow-auto rounded-3xl border border-white/10 bg-[#212121] p-0 text-white backdrop:bg-black/70">
     <header className="flex items-center gap-3 border-b border-white/10 p-5"><img src="/orvyn-logo.png" alt="" className="size-10 object-contain"/><div className="flex-1"><h2 id="settings-title" className="text-lg font-semibold">Orvyn · Settings</h2><p className="text-xs text-gray-400">Preferences are saved automatically on the USB.</p></div><button aria-label="Close settings" onClick={onClose}>✕</button></header>
-    <nav aria-label="Settings categories" className="flex flex-wrap gap-2 border-b border-white/10 p-4">{["General","Appearance","Logo","Opex","API’s","Storage","Startup","Training"].map(t=><button key={t} aria-pressed={tab===t} className={"rounded-lg px-3 py-2 text-sm "+(tab===t?"bg-teal-300 text-black":"bg-white/5")} onClick={()=>{setTab(t);setMessage("");}}>{t}</button>)}</nav>
+    <nav aria-label="Settings categories" className="flex flex-wrap gap-2 border-b border-white/10 p-4">{["General","Chat","Appearance","Logo","Opex","API’s","Storage","Startup","Training"].map(t=><button key={t} aria-pressed={tab===t} className={"rounded-lg px-3 py-2 text-sm "+(tab===t?"bg-teal-300 text-black":"bg-white/5")} onClick={()=>{setTab(t);setMessage("");}}>{t}</button>)}</nav>
     {open&&tab==="API’s"?<ApiProviders backLabel="Back to settings" onBack={()=>setTab("General")} onRefresh={onRefresh}/>:<div className="space-y-5 p-6">
       {open&&tab==="Startup"&&<Suspense fallback={<p>Loading startup diagnostics…</p>}><StartupDiagnostics/></Suspense>}
       {open&&tab==="Training"&&<Suspense fallback={<p>Loading training lab…</p>}><TrainingDashboard/></Suspense>}
@@ -26,6 +26,29 @@ export function AppSettings({open,onClose,preferences:p,onChange,hardware,onRefr
         <label className="flex gap-3 text-sm"><input type="checkbox" checked={p.documents} onChange={e=>patch({documents:e.target.checked})}/>Search attached documents</label>
         <label className="flex gap-3 text-sm"><input type="checkbox" checked={p.web} onChange={e=>patch({web:e.target.checked})}/>Search Wikipedia online</label>
       </>}
+      {tab === "Chat" && <fieldset className="space-y-4">
+        <legend className="mb-3 font-semibold">Chat behavior</legend>
+        <label className="block text-sm">
+          Maximum response tokens
+          <select className={field} value={responseTokenLimits.some(limit => limit === p.responseTokenLimit) ? p.responseTokenLimit : 1024} onChange={e => patch({responseTokenLimit: Number(e.target.value)})}>
+            {responseTokenLimits.map(limit => <option key={limit} value={limit}>{limit.toLocaleString("en-US")}{limit === 1024 ? " (default)" : ""}</option>)}
+          </select>
+        </label>
+        <p className="text-xs text-gray-400">This cap applies to chat replies and model comparisons. Your model or provider may use a lower limit.</p>
+        <label className="flex gap-3 text-sm">
+          <input type="checkbox" checked={p.autoScroll !== false} onChange={e => patch({autoScroll: e.target.checked})}/>
+          Follow new messages automatically
+        </label>
+        <label className="flex gap-3 text-sm">
+          <input type="checkbox" checked={p.showResponseStats !== false} onChange={e => patch({showResponseStats: e.target.checked})}/>
+          Show response time and token counts
+        </label>
+        <label className="flex gap-3 text-sm">
+          <input type="checkbox" checked={p.autoSummarize !== false} onChange={e => patch({autoSummarize: e.target.checked})}/>
+          Summarize long chats automatically
+        </label>
+        <p className="text-xs text-gray-400">Automatic summaries make an extra model request. You can also summarize a chat manually.</p>
+      </fieldset>}
       {tab==="Logo"&&<LogoChoices selected={p.logoProposal} onSelect={logoProposal=>patch({logoProposal})}/>}
       {tab==="Appearance"&&<>
         <label className="block text-sm">Text size<select aria-label="Text size" className={field} value={p.fontSize||16} onChange={e=>patch({fontSize:Number(e.target.value)})}><option value={14}>Compact · 14 px</option><option value={16}>Default · 16 px</option><option value={18}>Large · 18 px</option></select></label>

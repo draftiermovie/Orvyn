@@ -41,7 +41,7 @@ import { CodeContent } from "@/components/agents/code-content";
 import { Workbench, emptyWorkbench, exportText, useDocumentIndex, type WorkbenchState } from "@/components/agents/workbench";
 import { PdfSource } from "@/components/agents/pdf-source";
 import { chatRequest } from "@/lib/chat-client";
-import { api, chooseModel, defaultPreferences, preferenceInstruction, gb, type Hardware, type Preferences, type Source } from "@/lib/workspace";
+import { api, chooseModel, defaultPreferences, preferenceInstruction, responseTokenLimits, gb, type Hardware, type Preferences, type Source } from "@/lib/workspace";
 
 type Model = {
   id: string;
@@ -252,8 +252,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeChatId, chats]);
+    if (preferences.autoScroll !== false) {
+      messagesEndRef.current?.scrollIntoView({ behavior: preferences.reduceMotion ? "instant" : "smooth" });
+    }
+  }, [activeChatId, chats, preferences.autoScroll, preferences.reduceMotion]);
 
   function checkModels(force=true):Promise<void> {
     if(catalogRequest.current)return force?catalogRequest.current.then(()=>checkModels(false)):catalogRequest.current;
@@ -412,10 +414,11 @@ export default function Home() {
       const content=image?[{type:'text',text:question},{type:'image_url',image_url:{url:image}}]:question;
       const history=(currentChat?.messages||[]).filter(m=>!m.isError&&!m.streaming&&m.content).slice(-4).map(m=>({role:m.role,content:m.content.slice(-500)}));
       const requestMessages=[...(currentChat?.summary?[{role:'user',content:`Summary of earlier messages: ${currentChat.summary}`}]:[]),...history,{role:'user',content}];
+      const maxTokens = responseTokenLimits.find(limit => limit === preferences.responseTokenLimit) ?? 1024;
       const data = await chatRequest({
           model: model.id,
           messages: requestMessages,
-          max_tokens: 1024,
+          max_tokens: maxTokens,
         },controller.signal,(partial)=>{if(generation.current===controller)setChats(prev=>prev.map(c=>c.id===chatId?{...c,messages:c.messages.map(m=>m.id===assistantId?{...m,content:partial,model:model.name}:m)}:c));});
 
       if (generation.current!==controller) return;
@@ -460,13 +463,13 @@ export default function Home() {
         if(compareModel&&!controller.signal.aborted){
           const compareStart=performance.now();
           try{
-            const other=await chatRequest({model:compareModel,messages:requestMessages,max_tokens:1024},controller.signal,partial=>{if(!controller.signal.aborted)setChats(prev=>prev.map(c=>c.id===chatId?{...c,messages:c.messages.map(m=>m.id===assistantId?{...m,comparison:{model:models.find(v=>v.id===compareModel)?.name||compareModel,content:partial,seconds:(performance.now()-compareStart)/1000}}:m)}:c));});
+            const other=await chatRequest({model:compareModel,messages:requestMessages,max_tokens:maxTokens},controller.signal,partial=>{if(!controller.signal.aborted)setChats(prev=>prev.map(c=>c.id===chatId?{...c,messages:c.messages.map(m=>m.id===assistantId?{...m,comparison:{model:models.find(v=>v.id===compareModel)?.name||compareModel,content:partial,seconds:(performance.now()-compareStart)/1000}}:m)}:c));});
             if(controller.signal.aborted)return;
             setChats(prev=>prev.map(c=>c.id===chatId?{...c,messages:c.messages.map(m=>m.id===assistantId?{...m,comparison:{model:models.find(v=>v.id===compareModel)?.name||compareModel,content:other.choices?.[0]?.message?.content||'No response received',seconds:(performance.now()-compareStart)/1000}}:m)}:c));
           }catch(error){if(!controller.signal.aborted)setChats(prev=>prev.map(c=>c.id===chatId?{...c,messages:c.messages.map(m=>m.id===assistantId?{...m,comparison:{model:compareModel,content:String(error),seconds:0,error:true}}:m)}:c));}
         }
         const count=(currentChat?.messages.length||0)+2;
-        if(model.category!=='vision'&&count>=12&&count-(currentChat?.summaryCount||0)>=10&&!controller.signal.aborted){
+        if(preferences.autoSummarize!==false&&model.category!=='vision'&&count>=12&&count-(currentChat?.summaryCount||0)>=10&&!controller.signal.aborted){
           try{const result=await chatRequest({model:model.id,messages:[{role:'user',content:`Summarize this conversation factually in up to 150 words. Preserve important commitments.\nEarlier: ${currentChat?.summary||''}\n${[...(currentChat?.messages||[]).slice(-10),userMsg,{role:'assistant',content}].map(m=>`${m.role}: ${m.content}`).join('\n').slice(-9000)}`}],max_tokens:300},controller.signal);if(!controller.signal.aborted)setChats(prev=>prev.map(c=>c.id===chatId?{...c,summary:result.choices[0].message.content,summaryCount:count}:c));}catch(e){if(!controller.signal.aborted)setModelError(`Summarizing: ${String(e)}`);}
         }
       }
@@ -844,9 +847,9 @@ export default function Home() {
                             <span className="inline-flex flex-col gap-2"><ThinkingShimmer>{runtime.phase==="loading"?"Loading model from USB…":"Preparing response…"}</ThinkingShimmer><AgentProgress label={runtime.phase==="loading"?"Loading model":"Generating"}/></span>
                           )}
                         </div></div>
-                        {msg.comparison&&<div className="rounded-xl border border-white/10 p-3"><p className="mb-1 text-xs text-teal-300">{msg.comparison.model} · {msg.comparison.seconds.toFixed(1)}s</p><CodeContent text={msg.comparison.content}/></div>}
+                        {msg.comparison&&<div className="rounded-xl border border-white/10 p-3"><p className="mb-1 text-xs text-teal-300">{msg.comparison.model}{preferences.showResponseStats !== false && ` · ${msg.comparison.seconds.toFixed(1)}s`}</p><CodeContent text={msg.comparison.content}/></div>}
                         </div>
-                        {msg.seconds!==undefined&&<p className="mt-2 text-xs text-gray-500">{msg.seconds.toFixed(1)}s total {msg.tokens?`· ${msg.tokens} tokens · ${(msg.tokens/msg.seconds).toFixed(1)} tokens/s including loading`:''}</p>}
+                        {preferences.showResponseStats!==false&&msg.seconds!==undefined&&<p className="mt-2 text-xs text-gray-500">{msg.seconds.toFixed(1)}s total {msg.tokens?`· ${msg.tokens} tokens · ${(msg.tokens/msg.seconds).toFixed(1)} tokens/s including loading`:''}</p>}
                         {!!msg.sources?.length&&<details className="mt-2 text-xs text-gray-400"><summary>Sources ({msg.sources.length})</summary>{msg.sources.map((s,i)=><div key={i} className="mt-1">[{i+1}] {s.url?<button className="text-teal-300 underline" onClick={()=>api('/api/open-url',{url:s.url}).catch(e=>setModelError(String(e)))}>{s.name} ↗</button>:s.pdf&&s.id?<button onClick={()=>setPdfSource({id:s.id!,page:s.page||1})}>{s.name} · page {s.page||1} open</button>:`${s.name}${s.section?` · fragment ${s.section}`:''}`}<details><summary>View excerpt</summary><p className="whitespace-pre-wrap">{s.text}</p></details></div>)}</details>}
                         {!msg.streaming && (
                           <div className="flex items-center gap-1 mt-3 -ml-1">
