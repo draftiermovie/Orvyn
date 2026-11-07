@@ -405,7 +405,29 @@ pub fn service(root: &Path, key: &str, start: bool) -> Result<String> {
             #[cfg(unix)]
             {
                 if unsafe { libc::kill(pid as i32, libc::SIGTERM) } != 0 {
-                    return Err(err(std::io::Error::last_os_error()));
+                    let error = std::io::Error::last_os_error();
+                    // ESRCH means the process already exited.
+                    if error.raw_os_error() != Some(libc::ESRCH) {
+                        return Err(err(error));
+                    }
+                }
+                // Wait for the process to exit and be reaped so /proc is cleaned up.
+                for _ in 0..50 {
+                    if identity(pid).is_none() {
+                        break;
+                    }
+                    std::thread::sleep(Duration::from_millis(100));
+                }
+                if identity(pid).is_some() {
+                    unsafe {
+                        libc::kill(pid as i32, libc::SIGKILL);
+                    }
+                    for _ in 0..20 {
+                        if identity(pid).is_none() {
+                            break;
+                        }
+                        std::thread::sleep(Duration::from_millis(100));
+                    }
                 }
             }
             let _ = fs::remove_file(pidfile);
@@ -468,6 +490,12 @@ pub fn service(root: &Path, key: &str, start: bool) -> Result<String> {
         return Err(format!("{key} stopped ({code}); check the log"));
     }
     let pid = child.id();
+    #[cfg(unix)]
+    std::thread::spawn(move || {
+        // Reap the service when it exits so it does not remain a zombie.
+        let mut child = child;
+        let _ = child.wait();
+    });
     atomic(
         &pidfile,
         &json!({"pid":pid,"created": identity(pid).ok_or("Process stopped during startup")?}),
