@@ -12,7 +12,10 @@ mod diagnostics;
 mod training;
 #[cfg(windows)]
 mod window;
-#[cfg(not(windows))]
+#[cfg(target_os = "macos")]
+#[path = "window_macos.rs"]
+mod window;
+#[cfg(not(any(windows, target_os = "macos")))]
 #[path = "window_linux.rs"]
 mod window;
 

@@ -60,8 +60,9 @@ pub fn shell_command(script: &str) -> Command {
 }
 #[cfg(not(windows))]
 pub fn shell_command(script: &str) -> Command {
+    use std::os::unix::process::CommandExt;
     let mut c = hidden("sh");
-    c.args(["-c", script]);
+    c.args(["-c", script]).process_group(0);
     c
 }
 
@@ -75,11 +76,15 @@ pub fn kill_tree(pid: u32) {
 #[cfg(unix)]
 pub fn kill_tree(pid: u32) {
     unsafe {
-        libc::kill(pid as i32, libc::SIGKILL);
+        libc::kill(-(pid as i32), libc::SIGKILL);
     }
 }
 pub fn root() -> Result<PathBuf> {
     let exe = std::env::current_exe().map_err(err)?;
+    #[cfg(target_os = "macos")]
+    if let Some(resources) = crate::window::bundle_resources(&exe) {
+        return crate::window::initialize_app_data(&resources);
+    }
     exe.ancestors()
         .find(|p| p.join("config/settings.json").is_file())
         .map(Path::to_path_buf)
@@ -306,16 +311,17 @@ fn atomic_write(path: &Path, value: &Value, durable: bool) -> Result<()> {
     fs::create_dir_all(path.parent().ok_or("No parent folder")?).map_err(err)?;
     let temp = path.with_extension(format!("{}.tmp", id()));
     let result = (|| {
-        let mut f = File::create(&temp).map_err(err)?;
+        let mut options = OpenOptions::new();
+        options.write(true).create_new(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.mode(0o600);
+        }
+        let mut f = options.open(&temp).map_err(err)?;
         f.write_all(&serde_json::to_vec_pretty(value).map_err(err)?)
             .map_err(err)?;
         if durable { f.sync_all().map_err(err)?; }
-        #[cfg(unix)]
-        {
-            // Keep configuration, chats, and provider keys private to this user.
-            use std::os::unix::fs::PermissionsExt;
-            fs::set_permissions(&temp, fs::Permissions::from_mode(0o600)).map_err(err)?;
-        }
         drop(f);
         #[cfg(windows)]
         if unsafe {
@@ -352,7 +358,19 @@ fn identity(pid: u32) -> Option<u64> {
         }
     }
 }
-#[cfg(unix)]
+#[cfg(target_os = "macos")]
+fn identity(pid: u32) -> Option<u64> {
+    let mut info = std::mem::MaybeUninit::<libc::proc_bsdinfo>::uninit();
+    let size = std::mem::size_of::<libc::proc_bsdinfo>() as i32;
+    let written = unsafe {
+        libc::proc_pidinfo(pid as i32, libc::PROC_PIDTBSDINFO, 0, info.as_mut_ptr().cast(), size)
+    };
+    if written != size { return None; }
+    let info = unsafe { info.assume_init() };
+    if info.pbi_status == libc::SZOMB { return None; }
+    Some(info.pbi_start_tvsec * 1_000_000 + info.pbi_start_tvusec)
+}
+#[cfg(all(unix, not(target_os = "macos")))]
 fn identity(pid: u32) -> Option<u64> {
     // Use the process start time from /proc so PID reuse is detected.
     let stat = fs::read_to_string(format!("/proc/{pid}/stat")).ok()?;
@@ -472,6 +490,8 @@ pub fn service(root: &Path, key: &str, start: bool) -> Result<String> {
         &pidfile,
         &json!({"pid":pid,"created": identity(pid).ok_or("Process stopped during startup")?}),
     )?;
+    #[cfg(unix)]
+    std::thread::spawn(move || { let _ = child.wait(); });
     Ok(format!("{key} started; the model may still be loading"))
 }
 pub fn load_chats(cfg: &Value) -> Result<Value> {
@@ -874,7 +894,12 @@ mod tests {
             first
         );
         service(&root, "test", false).unwrap();
-        assert!(identity(first["pid"].as_u64().unwrap() as u32).is_none());
+        let pid = first["pid"].as_u64().unwrap() as u32;
+        for _ in 0..50 {
+            if identity(pid).is_none() { break; }
+            std::thread::sleep(Duration::from_millis(20));
+        }
+        assert!(identity(pid).is_none());
         fs::remove_dir_all(root).unwrap();
     }
 }

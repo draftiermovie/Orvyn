@@ -14,13 +14,14 @@
 
 <h1 align="center">Orvyn</h1>
 
-<p align="center">Local AI chat and a coding workspace, together in one portable Windows and Linux app.</p>
+<p align="center">Local AI chat and a coding workspace, together in one desktop app for Windows, Linux, and macOS.</p>
 
 <p align="center">
   <a href="https://github.com/draftiermovie/Orvyn/actions/workflows/ci.yml"><img src="https://github.com/draftiermovie/Orvyn/actions/workflows/ci.yml/badge.svg" alt="CI build and tests"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Free%20redistribution-99e3cd" alt="Custom license: free redistribution, no resale"></a>
   <img src="https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-2563eb" alt="Windows 10 and 11">
   <img src="https://img.shields.io/badge/Platform-Linux-f0b429" alt="Linux">
+  <img src="https://img.shields.io/badge/Platform-macOS-334155" alt="macOS">
   <img src="https://img.shields.io/badge/Built%20with-Rust%20%2B%20React-e7b880" alt="Built with Rust and React">
 </p>
 
@@ -37,13 +38,13 @@ Orvyn brings AI chat, model discovery, documents, and **Opex Work** into a works
 - **Documents and sources** — import PDF, Word, Excel, text, and source files; ask questions using selected excerpts and view the sources supplied to the model.
 - **Portable by design** — keep app data alongside the executable and move the folder between writable locations. Models unload after 30 minutes of inactivity.
 - **English interface** — choose the response language and style in Settings, with startup diagnostics and experimental training reports available.
-- **Rust + React** — a native Rust host with a React, TypeScript, and Tailwind interface inside Windows WebView2 on Windows and WebKitGTK on Linux.
+- **Rust + React** — a native Rust host with a React, TypeScript, and Tailwind interface inside WebView2 on Windows, WebKitGTK on Linux, and WKWebView on macOS.
 
 > [!NOTE]
 > Orvyn is under active development. The model-library and English-language updates are in source; older packaged builds may not include them. Check the [release notes](docs/RELEASE-NOTES-0.7.0.md) and the source commit associated with a download.
 
 > [!IMPORTANT]
-> Opex file actions are restricted to the chosen USB project. Approved shell commands (PowerShell on Windows, `sh` on Linux) run with your account permissions and can access other locations. Review commands before approval; they have a 60-second time limit.
+> Opex file actions are restricted to the chosen project inside the Orvyn data folder. Approved shell commands (PowerShell on Windows, `sh` on Linux and macOS) run with your account permissions and can access other locations. Review commands before approval; they have a 60-second time limit.
 
 ![Orvyn Opex Work workspace](.github/opex-work.png)
 
@@ -116,6 +117,10 @@ just run
 | `just installer` | Build `dist/Orvyn-installer.sh`. |
 
 The equivalent scripts live in `scripts/*.sh` and can be run without `just`. Linux uses `sh -c` for Opex commands, `xdg-open` for links, and a portable `curl`; Windows keeps the native Win32 manager, PowerShell, and WebView2 paths. Speech output uses `spd-say`, `espeak-ng`, or `espeak` when one is installed.
+
+### Run on macOS
+
+Choose the Apple Silicon (`arm64`) or Intel (`x86_64`) archive from the **Release artifacts** workflow. Extract `Orvyn.app` and open it on macOS 15 or later. The macOS package uses the system webview and starts with an empty model library. Connect an API in Settings or configure a local runtime. [macOS build and setup](docs/DEVELOPMENT.md#macos)
 
 ## Documentation
 

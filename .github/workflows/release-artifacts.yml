@@ -63,3 +63,61 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
+
+  macos:
+    name: macOS (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            runner: macos-15
+          - arch: x86_64
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "15.0"
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Select Rust toolchain
+        run: |
+          rustup toolchain install 1.97.1 --profile minimal --no-self-update
+          rustup default 1.97.1
+      - name: Build desktop web bundle
+        run: |
+          bash scripts/init-config.sh
+          bash scripts/build-ui.sh
+      - name: Run native tests
+        run: |
+          source scripts/usb-environment.sh
+          cargo test --manifest-path apps/manager/Cargo.toml --release --locked -- --test-threads=2
+      - name: Build and package macOS app
+        id: package
+        run: |
+          bash scripts/build-desktop.sh
+          bash scripts/package-macos.sh
+      - name: Smoke-test the packaged webview
+        env:
+          APP_BUNDLE: ${{ steps.package.outputs.bundle }}
+        run: |
+          smoke_home=$(mktemp -d)
+          HOME="$smoke_home" "$APP_BUNDLE/Contents/MacOS/Orvyn" self-test
+          node -e 'const s = require(process.argv[1]); if (!s.ui_loaded) throw Error("Orvyn webview did not load")' \
+            "$smoke_home/Library/Application Support/Orvyn/data/desktop-session.json"
+      - name: Upload macOS app archive and checksum
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: Orvyn-macos-${{ matrix.arch }}-${{ github.sha }}
+          path: |
+            dist/${{ steps.package.outputs.archive }}
+            dist/${{ steps.package.outputs.archive }}.sha256
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14

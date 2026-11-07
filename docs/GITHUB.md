@@ -28,3 +28,5 @@ References: [GitHub issue-form syntax](https://docs.github.com/en/communities/us
 Open **Actions → Release artifacts → Run workflow** and select the source branch or tag. The workflow builds and tests the Windows desktop app, verifies pinned downloads for llamafile, Orvyn 1, and Inno Setup, then builds both installer variants.
 
 Download the `Orvyn-<version>-<commit>` artifact from the run. It contains both installers, their SHA-256 files, and `build-manifest.json` with the full source commit and each installer’s size, checksum, and model variant. GitHub retains the artifact for 14 days. The workflow requires read-only repository permissions and uploads to the workflow run.
+
+The same dispatch builds separate macOS 15 archives on Apple Silicon and Intel runners. Each job runs the native tests and launches the packaged app to check that the webview loads before uploading the ZIP and SHA-256 file. The archive name and bundled `source-commit.txt` identify the source revision.

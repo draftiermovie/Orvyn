@@ -116,3 +116,20 @@ Conversations, models, executables, runtimes, caches, WebView profiles, credenti
 ## Language and training
 
 The interface, prompts, messages, and documentation use English. Response language remains configurable, and legacy internal preference values are retained for compatibility. Multilingual training and evaluation examples keep their original language to preserve their purpose. See the [training notes](../tools/training/README.txt) before running an experiment.
+
+## macOS
+
+Build on macOS 15 or later with Xcode Command Line Tools, Node.js 22, and Rust 1.97.1. Run the commands on the architecture you want to package.
+
+```bash
+bash scripts/init-config.sh
+bash scripts/build-ui.sh
+MACOSX_DEPLOYMENT_TARGET=15.0 bash scripts/build-desktop.sh
+bash scripts/package-macos.sh
+```
+
+The packaging script prints the path to `Orvyn.app` and creates a ZIP and SHA-256 file under `dist`. The bundle records its source commit and uses an ad-hoc signature. GitHub Actions produces separate Apple Silicon and Intel archives. Developer ID signing and Apple notarization are required for standard Gatekeeper distribution.
+
+On first launch Orvyn initializes `~/Library/Application Support/Orvyn` from clean defaults. Chats, API settings, backups, and imported models live there across app upgrades. API keys on macOS rely on filesystem permissions. Keep this folder and its backups private. Place projects for Opex Work inside this folder. Opex runs approved commands through `sh` and read-aloud uses the system speech synthesizer. Use the keyboard or macOS system dictation to enter text.
+
+The macOS archive starts without a bundled model or inference runtime. Connect a provider in Settings to start chatting. To enable the GGUF library for local inference, place a compatible executable llamafile at `runtime/llamafile/llamafile` inside the Orvyn data folder and make it executable. The model library installs or imports the model files into the data folder.
