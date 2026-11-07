@@ -1,0 +1,65 @@
+name: Release artifacts
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  installers:
+    runs-on: windows-2022
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Select Rust toolchain
+        run: |
+          rustup toolchain install 1.97.1-x86_64-pc-windows-msvc --profile minimal --no-self-update
+          if ($LASTEXITCODE -ne 0) { throw 'Rust toolchain installation failed' }
+          rustup default 1.97.1-x86_64-pc-windows-msvc
+      - name: Initialize portable configuration
+        run: ./scripts/initialize-config.ps1
+      - name: Install locked web dependencies
+        run: |
+          . ./scripts/usb-environment.ps1
+          Push-Location apps/web-ui
+          try {
+            npm ci
+            if ($LASTEXITCODE -ne 0) { throw 'npm ci failed' }
+          } finally { Pop-Location }
+      - name: Check TypeScript
+        run: node apps/web-ui/node_modules/typescript/bin/tsc --project apps/web-ui/tsconfig.json --noEmit --incremental false
+      - name: Build desktop web bundle
+        run: ./scripts/build-ui.ps1
+      - name: Prepare locked Cargo cache
+        run: ./scripts/prepare-cargo-cache.ps1
+      - name: Run native tests offline
+        run: |
+          . ./scripts/rust-environment.ps1
+          cargo test --manifest-path apps/manager/Cargo.toml --release --locked --offline --jobs 4 -- --test-threads=2
+      - name: Build and stage desktop executable
+        run: |
+          ./scripts/build-desktop.ps1
+          ./scripts/deploy-desktop.ps1
+      - name: Prepare verified model, runtime, and compiler
+        run: ./scripts/prepare-release-inputs.ps1
+      - name: Build installers and record provenance
+        id: package
+        run: ./scripts/build-release-artifacts.ps1 -Compiler ./tools/innosetup-6.7.4/ISCC.exe
+      - name: Upload installers, checksums, and manifest
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: ${{ steps.package.outputs.artifact_name }}
+          path: ${{ steps.package.outputs.artifact_path }}
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
