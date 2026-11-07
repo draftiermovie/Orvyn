@@ -112,7 +112,6 @@ just run
 | `just deploy` | Copy the release binary to `dist/orvyn-manager`. |
 | `just build` | Run `ui`, `desktop`, and `deploy` in order. |
 | `just run` | Start Orvyn from `dist/`. |
-| `just test` | Run the Rust and web UI test suites. |
 | `just package` | Stage `dist/Orvyn-portable-linux`. |
 | `just installer` | Build `dist/Orvyn-installer.sh`. |
 

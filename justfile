@@ -32,17 +32,6 @@ build: ui desktop deploy
 run:
     ./scripts/start-all.sh
 
-# Type-check the web UI and run the browser tests.
-test-ui:
-    ./scripts/test-workspace-api.sh
-
-# Run the Rust unit tests.
-test-manager:
-    ./scripts/test-manager.sh
-
-# Run every test suite.
-test: test-manager test-ui
-
 # Stage the portable Linux package.
 package: deploy
     ./scripts/package-portable.sh
@@ -50,10 +39,6 @@ package: deploy
 # Build the Linux installer.
 installer: package
     ./scripts/build-installer.sh
-
-# Verify the installer in a temporary prefix.
-test-installer: installer
-    ./scripts/test-installer.sh
 
 # Remove generated Linux build output.
 clean:
