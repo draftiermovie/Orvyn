@@ -105,9 +105,6 @@
 # Application licensing guide
 !/docs/LICENSING.md
 
-# Repository commit-message guidance
-!/.cursor/
-
 # Local PowerShell tests
 test-*.ps1
 *.Tests.ps1
