@@ -25,7 +25,7 @@ export function ApiProviders({onBack,onRefresh,backLabel="Back to library"}:{onB
   return <section className="space-y-4 p-6" aria-label="Configure API providers">
     <div className="flex items-center justify-between"><h3 className="text-lg font-semibold">API providers</h3><Button size="sm" variant="ghost" onClick={onBack}>{backLabel}</Button></div>
     <p className="text-sm text-gray-300">Choose a provider preset or enter a custom OpenAI-compatible endpoint. Messages, context, and selected attachments are sent to your provider. API usage may incur charges.</p>
-    <p className="text-xs text-gray-400">Keys are encrypted on the USB for this Windows account. Enter them again on another PC. Smart model selection uses local models only.</p>
+    <p className="text-xs text-gray-400">Windows encrypts API keys for your account. On macOS and Linux, keys are stored in a file protected by filesystem permissions. Smart model selection uses local models only.</p>
     {entries.length>0&&<ul className="space-y-2">{entries.map(p=><li key={p.id} className="flex flex-wrap items-center gap-3 rounded-lg border border-white/10 p-3 text-sm">
       <span className="mr-auto"><strong>{p.name}</strong><span className="block text-xs text-gray-400">{p.kind} · {p.model}</span></span>
       <Button size="sm" variant="secondary" disabled={busy} onClick={()=>{setForm({id:p.id,name:p.name,kind:p.kind,base_url:p.base_url,model:p.model,category:p.category});setKey("");setAvailable([]);setMessage("");}}>Edit</Button>

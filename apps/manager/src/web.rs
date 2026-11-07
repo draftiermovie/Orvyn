@@ -38,6 +38,9 @@ pub fn run(root: PathBuf, smoke: bool) -> Result<()> {
     let runtime=crate::models::Runtime::with_config(root.clone(),&cfg)?;
     startup.mark("runtime","Preparing model manager");
     let assets = core::path(&cfg, "web_ui");
+    #[cfg(target_os = "macos")]
+    let assets = crate::window::bundle_resources(&std::env::current_exe().map_err(err)?)
+        .map(|resources| resources.join("web")).unwrap_or(assets);
     if !assets.join("index.html").exists() {
         return Err("The bundled web interface is missing (apps/web-ui/dist).".into());
     }

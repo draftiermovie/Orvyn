@@ -348,6 +348,14 @@ try{
   await page.screenshot({path:resolve(root,'tests/orvyn-settings.png')});
   await settings.getByRole('button',{name:'General',exact:true}).click();
   await settings.getByLabel('Enter sends a message').uncheck();
+  await settings.getByRole('button',{name:'Chat',exact:true}).click();
+  await settings.getByLabel('Maximum response tokens').selectOption('512');
+  await settings.getByLabel('Follow new messages automatically').uncheck();
+  await settings.getByLabel('Show response time and token counts').uncheck();
+  await settings.getByLabel('Summarize long chats automatically').uncheck();
+  await expect.poll(()=>state.preferences).toMatchObject({
+    responseTokenLimit:512,autoScroll:false,showResponseStats:false,autoSummarize:false,
+  });
   await settings.getByRole('button',{name:'Close settings'}).click();
   const previousCalls=calls.length;
   await page.getByRole('textbox',{name:'Chat message'}).fill('Niet verzenden');
@@ -356,7 +364,7 @@ try{
   await expect(page.getByRole('textbox',{name:'Chat message'})).toHaveValue('Niet verzenden\n');
   expect(calls.length).toBe(previousCalls);
   await page.getByRole('textbox',{name:'Chat message'}).press('Control+Enter');
-  await expect.poll(()=>calls.length).toBeGreaterThan(previousCalls);
+  await expect.poll(()=>calls[previousCalls]?.max_tokens).toBe(512);
   await expect(page.getByRole('button',{name:'Send message'})).toBeVisible();
   await page.reload();
   await page.locator('summary').filter({hasText:/^Chat options$/}).click();
@@ -365,6 +373,14 @@ try{
   await expect(page).toHaveTitle('Orvyn · AI Model Hub');
   expect(state.preferences.logoProposal).toBe('orbit');
   expect(state.preferences.enterToSend).toBe(false);
+  await expect(page.getByText(/\ds total/)).toHaveCount(0);
+  await page.getByRole('button',{name:'Settings',exact:true}).click();
+  await settings.getByRole('button',{name:'Chat',exact:true}).click();
+  await expect(settings.getByLabel('Maximum response tokens')).toHaveValue('512');
+  await expect(settings.getByLabel('Follow new messages automatically')).not.toBeChecked();
+  await expect(settings.getByLabel('Show response time and token counts')).not.toBeChecked();
+  await expect(settings.getByLabel('Summarize long chats automatically')).not.toBeChecked();
+  await settings.getByRole('button',{name:'Close settings'}).click();
   await page.getByRole('button',{name:'Tools & preferences',exact:true}).click();
   await page.getByLabel('Search online (Wikipedia)').check();
   await page.getByRole('textbox',{name:'Chat message'}).fill('Vat https://example.com samen');

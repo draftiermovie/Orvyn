@@ -18,7 +18,29 @@ fn powershell(script: &str, input: &Value) -> Result<Value> {
 pub fn hardware()->Result<Value>{
     powershell("$ErrorActionPreference='Stop'; [Console]::OutputEncoding=[Text.Encoding]::UTF8; $o=Get-CimInstance Win32_OperatingSystem; $c=@(Get-CimInstance Win32_Processor); $p=@(Get-Process | Where-Object {$_.ProcessName -like '*llamafile*'}); @{ram_bytes=[double]$o.TotalVisibleMemorySize*1024;available_bytes=[double]$o.FreePhysicalMemory*1024;cpu=($c.Name -join ', ');threads=($c | Measure-Object NumberOfLogicalProcessors -Sum).Sum;model_ram_bytes=($p | Measure-Object WorkingSet64 -Sum).Sum} | ConvertTo-Json -Compress",&Value::Null)
 }
-#[cfg(not(windows))]
+#[cfg(target_os = "macos")]
+pub fn hardware() -> Result<Value> {
+    fn sysctl(name: &str) -> Result<String> {
+        let output = core::hidden("/usr/sbin/sysctl").args(["-n", name]).output().map_err(err)?;
+        if !output.status.success() { return Err(format!("Could not read {name}")); }
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_owned())
+    }
+    let ram_bytes = sysctl("hw.memsize")?.parse::<u64>().map_err(err)?;
+    let cpu = sysctl("machdep.cpu.brand_string").unwrap_or_else(|_| std::env::consts::ARCH.into());
+    let threads = std::thread::available_parallelism().map_or(1, |count| count.get());
+    let stats = core::hidden("/usr/bin/vm_stat").output().map_err(err)?;
+    let stats = String::from_utf8_lossy(&stats.stdout);
+    let page_size = stats.lines().next().and_then(|line| line.split_once("page size of "))
+        .and_then(|(_, size)| size.split_whitespace().next())
+        .and_then(|size| size.parse::<u64>().ok()).unwrap_or(0);
+    let free_pages: u64 = stats.lines().filter_map(|line| {
+        let (label, count) = line.split_once(':')?;
+        if !matches!(label, "Pages free" | "Pages inactive" | "Pages speculative") { return None; }
+        count.trim().trim_end_matches('.').parse::<u64>().ok()
+    }).sum();
+    Ok(json!({"ram_bytes":ram_bytes,"available_bytes":(free_pages * page_size).min(ram_bytes),"cpu":cpu,"threads":threads,"model_ram_bytes":0}))
+}
+#[cfg(not(any(windows, target_os = "macos")))]
 pub fn hardware() -> Result<Value> {
     // Read memory and CPU information from procfs.
     let mem = fs::read_to_string("/proc/meminfo").unwrap_or_default();
@@ -203,15 +225,18 @@ pub fn speech(data:&Value)->Result<Value>{
     }
     let text=data["text"].as_str().ok_or("Text to read aloud is missing")?;
     if text.len()>40_000{return Err("Text to read aloud is missing or too long".into());}
-    // Use whichever common speech synthesizer is installed.
-    for program in ["spd-say","espeak-ng","espeak"]{
+    #[cfg(target_os = "macos")]
+    let programs = ["/usr/bin/say"];
+    #[cfg(not(target_os = "macos"))]
+    let programs = ["spd-say", "espeak-ng", "espeak"];
+    for program in programs{
         let mut command=core::hidden(program);
-        if program=="spd-say"{command.args(["--wait",text]);}else{command.arg(text);}
+        if program=="spd-say"{command.args(["--wait",text]);}else{command.args(["--", text]);}
         if command.status().is_ok_and(|status|status.success()){
             return Ok(json!({"ok":true}));
         }
     }
-    Err("No speech synthesizer found. Install spd-say, espeak-ng, or espeak.".into())
+    Err("Could not read the text aloud with the available speech synthesizer.".into())
 }
 #[cfg(windows)]
 pub fn open_url(data:&Value)->Result<Value>{
@@ -223,7 +248,11 @@ pub fn open_url(data:&Value)->Result<Value>{
 pub fn open_url(data:&Value)->Result<Value>{
     let url=data["url"].as_str().ok_or("URL is missing")?;
     crate::web_pages::validate(url)?;
-    let status=core::hidden("xdg-open").arg(url).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).status().map_err(err)?;
+    #[cfg(target_os = "macos")]
+    let opener = "/usr/bin/open";
+    #[cfg(not(target_os = "macos"))]
+    let opener = "xdg-open";
+    let status=core::hidden(opener).arg(url).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).status().map_err(err)?;
     if !status.success(){return Err("Could not open the URL in a browser".into());}
     Ok(json!({"ok":true}))
 }
@@ -234,7 +263,7 @@ pub fn open_url(data:&Value)->Result<Value>{
         let root=core::root().unwrap().join("tools/temp").join(format!("index-{}",core::id()));fs::create_dir_all(root.join("source")).unwrap();fs::write(root.join("source/a.txt"),"A car drives on the road.").unwrap();
         assert!(index_folder(&root,&json!({"folder":".."})).is_err());
         let folders=index_folder(&root,&json!({"folder":"source","collection":"Traffic"})).unwrap();assert_eq!(folders[0]["folder"],"source");
-        let scan=scan_index(&root).unwrap();let mut doc=scan["files"][0].clone();let expected_source=Path::new("source").join("a.txt").to_string_lossy().to_string();assert_eq!(doc["source"],expected_source);doc["text"]=json!("A car drives on the road.");import_document(&root,&doc).unwrap();
+        let scan=scan_index(&root).unwrap();let mut doc=scan["files"][0].clone();assert_eq!(Path::new(doc["source"].as_str().unwrap()),Path::new("source").join("a.txt"));doc["text"]=json!("A car drives on the road.");import_document(&root,&doc).unwrap();
         assert_eq!(scan_index(&root).unwrap()["files"].as_array().unwrap().len(),0);
         assert_eq!(search(&root,&json!({"query":"vehicle","terms":"car","collection":"Traffic"})).unwrap().as_array().unwrap().len(),1);
         assert_eq!(search(&root,&json!({"query":"car","collection":"School"})).unwrap().as_array().unwrap().len(),0);

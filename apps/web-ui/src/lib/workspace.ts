@@ -1,8 +1,10 @@
 import { modelQuality } from "@/components/agents/model-quality";
 
 export type Hardware = {ram_bytes:number;available_bytes:number;cpu:string;threads:number;model_ram_bytes:number};
-export type Preferences = {logoProposal?:string;chatMode?:"chat"|"plan"|"code";fontSize?:number;highContrast?:boolean;reduceMotion?:boolean;enterToSend?:boolean;codeInstructions?:string;autoModel:boolean;style:string;language:string;favorites:string[];web:boolean;documents:boolean;semantic?:boolean;collection?:string};
-export const defaultPreferences:Preferences={fontSize:16,highContrast:false,reduceMotion:false,enterToSend:true,codeInstructions:"",autoModel:false,style:"normaal",language:"English",favorites:[],web:false,documents:false};
+export const responseTokenLimits = [256, 512, 1024, 2048, 4096] as const;
+
+export type Preferences = {autoScroll?:boolean;showResponseStats?:boolean;autoSummarize?:boolean;responseTokenLimit?:number;logoProposal?:string;chatMode?:"chat"|"plan"|"code";fontSize?:number;highContrast?:boolean;reduceMotion?:boolean;enterToSend?:boolean;codeInstructions?:string;autoModel:boolean;style:string;language:string;favorites:string[];web:boolean;documents:boolean;semantic?:boolean;collection?:string};
+export const defaultPreferences:Preferences={autoScroll:true,showResponseStats:true,autoSummarize:true,responseTokenLimit:1024,fontSize:16,highContrast:false,reduceMotion:false,enterToSend:true,codeInstructions:"",autoModel:false,style:"normaal",language:"English",favorites:[],web:false,documents:false};
 export type ModelInfo={id:string;category:string;installed:boolean;bytes:number;name:string;custom?:boolean;remote?:boolean};
 export type Source={name:string;text:string;url?:string;section?:number;id?:string;page?:number;pdf?:boolean};
 export const gb=(bytes:number)=>`${(bytes/1e9).toFixed(2)} GB`;
