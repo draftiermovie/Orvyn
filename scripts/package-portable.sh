@@ -17,7 +17,7 @@ if [ ! -f apps/web-ui/dist/index.html ]; then
 fi
 
 rm -rf "$TARGET"
-mkdir -p "$TARGET"/{config,data,logs,backups,models,runtime/llamafile,apps/web-ui/dist,licenses}
+mkdir -p "$TARGET"/{config,data,logs,backups,models/desktop-active,runtime/llamafile,apps/web-ui/dist,licenses}
 
 cp dist/orvyn-manager "$TARGET/orvyn-manager"
 chmod +x "$TARGET/orvyn-manager"
@@ -40,10 +40,26 @@ else
 fi
 
 if [ -f models/desktop-active/llama32-1b.gguf ]; then
-    cp models/desktop-active/llama32-1b.gguf "$TARGET/models/"
+    cp models/desktop-active/llama32-1b.gguf "$TARGET/models/desktop-active/"
     [ -f models/desktop-active/llama32-1b.gguf.verified.json ] &&
-        cp models/desktop-active/llama32-1b.gguf.verified.json "$TARGET/models/"
+        cp models/desktop-active/llama32-1b.gguf.verified.json "$TARGET/models/desktop-active/"
 fi
+
+node - "$TARGET" <<'NODE'
+const fs = require('node:fs');
+const path = require('node:path');
+const target = process.argv[2];
+const settingsPath = path.join(target, 'config/settings.json');
+const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+settings.paths.llamafile = 'runtime/llamafile/llamafile';
+if (!fs.existsSync(path.join(target, settings.paths.llamafile)) ||
+    !fs.existsSync(path.join(target, settings.paths.models, 'llama32-1b.gguf'))) {
+    settings.app.description = 'Portable AI workspace';
+    settings.model_policy.default_model = '';
+    fs.writeFileSync(path.join(target, 'config/custom-models.json'), '{"version":1,"models":[]}\n');
+}
+fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+NODE
 
 cat > "$TARGET/start-orvyn.sh" << 'SCRIPT'
 #!/bin/bash

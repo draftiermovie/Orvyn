@@ -40,5 +40,5 @@ if($WithoutOrvyn1){
  $settings.app.description='Portable AI workspace; connect an API or download a model to begin'
  $settings | ConvertTo-Json -Depth 20 | Set-Content (Join-Path $target 'config/settings.json') -Encoding utf8
  [IO.File]::WriteAllText((Join-Path $target 'config/custom-models.json'),' {"version":1,"models":[]}')
- [IO.File]::WriteAllText((Join-Path $target 'README.txt'),'Orvyn 0.7.0 without Orvyn 1. Start Orvyn.exe. Connect an API in Settings or download a model from the AI library. No model weights or Orvyn 1 profile are bundled. WebView2 is required. Keep this folder together.')
+ [IO.File]::WriteAllText((Join-Path $target 'README.txt'),('Orvyn '+$settings.app.version+' without Orvyn 1. Start Orvyn.exe. Connect an API in Settings or download a model from the AI library. No model weights or Orvyn 1 profile are bundled. WebView2 is required. Keep this folder together.'))
 }
