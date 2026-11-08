@@ -265,6 +265,11 @@ try{
   await expect(page.getByLabel('API base URL')).toHaveValue('https://api.openai.com/v1');
   await page.getByLabel('API provider',{exact:true}).selectOption('compatible');
   await expect(page.getByLabel('API base URL')).toBeEditable();
+  for (const [kind, url] of [["gemini","https://generativelanguage.googleapis.com/v1beta/openai"],["xai","https://api.x.ai/v1"],["together","https://api.together.ai/v1"],["cerebras","https://api.cerebras.ai/v1"]]) {
+    await page.getByLabel('API provider',{exact:true}).selectOption(kind);
+    await expect(page.getByLabel('API base URL')).toHaveValue(url);
+    await expect(page.getByLabel('API base URL')).not.toBeEditable();
+  }
   await page.getByLabel('API provider',{exact:true}).selectOption('openrouter');
   await expect(page.getByLabel('API base URL')).toHaveValue('https://openrouter.ai/api/v1');
   await page.getByLabel('API model name').fill('Mijn OpenRouter');

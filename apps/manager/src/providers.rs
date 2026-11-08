@@ -51,6 +51,10 @@ fn endpoint(kind:&str, custom:&str)->Result<String>{
         "groq" => "https://api.groq.com/openai/v1",
         "deepseek" => "https://api.deepseek.com",
         "mistral" => "https://api.mistral.ai/v1",
+        "gemini" => "https://generativelanguage.googleapis.com/v1beta/openai",
+        "xai" => "https://api.x.ai/v1",
+        "together" => "https://api.together.ai/v1",
+        "cerebras" => "https://api.cerebras.ai/v1",
         "compatible" => custom.trim().trim_end_matches('/'),
         _ => return Err("Unknown API provider".into()),
     };
@@ -65,8 +69,10 @@ fn endpoint(kind:&str, custom:&str)->Result<String>{
 }
 fn clean_error(data:&Value, key:&str, status:u16)->String {
     let message=data["error"]["message"].as_str().or_else(||data["error"].as_str()).unwrap_or(match status{
-        401|403=>"Controleer je API-sleutel en toegangsrechten.",
-        402=>"Onvoldoende API-tegoed bij de aanbieder.",
+        0=>"Could not connect. Check the provider URL and your network connection.",
+        401|403=>"Check your API key and model permissions.",
+        402=>"Check your billing or credits with the provider.",
+        404=>"Check the model ID and API base URL.",
         429=>"API rate limit reached. Try again later.",
         _=>"The provider returned an invalid response.",
     });
@@ -278,6 +284,10 @@ mod tests {
             ("groq", "https://api.groq.com/openai/v1"),
             ("deepseek", "https://api.deepseek.com"),
             ("mistral", "https://api.mistral.ai/v1"),
+            ("gemini", "https://generativelanguage.googleapis.com/v1beta/openai"),
+            ("xai", "https://api.x.ai/v1"),
+            ("together", "https://api.together.ai/v1"),
+            ("cerebras", "https://api.cerebras.ai/v1"),
         ] {
             assert_eq!(endpoint(kind, "https://wrong.example").unwrap(), expected);
         }

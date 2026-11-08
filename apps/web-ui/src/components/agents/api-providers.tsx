@@ -10,6 +10,10 @@ const presets = [
   { kind: "groq", label: "Groq", url: "https://api.groq.com/openai/v1" },
   { kind: "deepseek", label: "DeepSeek", url: "https://api.deepseek.com" },
   { kind: "mistral", label: "Mistral AI", url: "https://api.mistral.ai/v1" },
+  { kind: "gemini", label: "Google Gemini", url: "https://generativelanguage.googleapis.com/v1beta/openai" },
+  { kind: "xai", label: "xAI (Grok)", url: "https://api.x.ai/v1" },
+  { kind: "together", label: "Together AI", url: "https://api.together.ai/v1" },
+  { kind: "cerebras", label: "Cerebras", url: "https://api.cerebras.ai/v1" },
   { kind: "compatible", label: "Other OpenAI-compatible API", url: "" },
 ];
 const empty={id:"",name:"",kind:"openai",base_url:"https://api.openai.com/v1",model:"",category:"chat"};

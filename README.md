@@ -27,7 +27,7 @@
 
 <br/>
 
-Orvyn brings AI chat, model discovery, documents, and **Opex Work** into a workspace you can keep on a USB drive. Run supported local models or connect an OpenAI-compatible API, with presets for OpenAI, OpenRouter, Groq, DeepSeek, and Mistral AI. Conversations, configuration, models, and backups stay in the app folder; API requests send their supplied content to the selected provider.
+Orvyn brings AI chat, model discovery, documents, and **Opex Work** into a workspace you can keep on a USB drive. Run supported local models or connect an OpenAI-compatible API, with presets for OpenAI, OpenRouter, Groq, DeepSeek, Mistral AI, Google Gemini, xAI, Together AI, and Cerebras. Conversations, configuration, models, and backups stay in the app folder; API requests send their supplied content to the selected provider.
 
 ## Features
 
