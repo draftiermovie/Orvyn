@@ -402,14 +402,15 @@ pub fn service(root: &Path, key: &str, start: bool) -> Result<String> {
         .join(format!("{key}.rust.json"));
     let owned = read_json(&pidfile).ok().and_then(|v| {
         let pid = v["pid"].as_u64()? as u32;
-        if identity(pid) == v["created"].as_u64() {
-            Some(pid)
+        let created = v["created"].as_u64()?;
+        if identity(pid) == Some(created) {
+            Some((pid, created))
         } else {
             None
         }
     });
     if !start {
-        if let Some(pid) = owned {
+        if let Some((pid, _created)) = owned {
             #[cfg(windows)]
             {
                 let output = hidden("taskkill")
@@ -429,23 +430,26 @@ pub fn service(root: &Path, key: &str, start: bool) -> Result<String> {
                         return Err(err(error));
                     }
                 }
-                // Wait for the process to exit and be reaped so /proc is cleaned up.
+                // Wait for the owned process to exit before reusing its port.
                 for _ in 0..50 {
-                    if identity(pid).is_none() {
+                    if identity(pid) != Some(_created) {
                         break;
                     }
                     std::thread::sleep(Duration::from_millis(100));
                 }
-                if identity(pid).is_some() {
+                if identity(pid) == Some(_created) {
                     unsafe {
                         libc::kill(pid as i32, libc::SIGKILL);
                     }
                     for _ in 0..20 {
-                        if identity(pid).is_none() {
+                        if identity(pid) != Some(_created) {
                             break;
                         }
                         std::thread::sleep(Duration::from_millis(100));
                     }
+                }
+                if identity(pid) == Some(_created) {
+                    return Err(format!("{key} did not stop"));
                 }
             }
             let _ = fs::remove_file(pidfile);
@@ -508,16 +512,14 @@ pub fn service(root: &Path, key: &str, start: bool) -> Result<String> {
         return Err(format!("{key} stopped ({code}); check the log"));
     }
     let pid = child.id();
-    #[cfg(unix)]
-    std::thread::spawn(move || {
-        // Reap the service when it exits so it does not remain a zombie.
-        let mut child = child;
+    let registered = identity(pid)
+        .ok_or_else(|| "Process stopped during startup".to_string())
+        .and_then(|created| atomic(&pidfile, &json!({"pid": pid, "created": created})));
+    if let Err(error) = registered {
+        let _ = child.kill();
         let _ = child.wait();
-    });
-    atomic(
-        &pidfile,
-        &json!({"pid":pid,"created": identity(pid).ok_or("Process stopped during startup")?}),
-    )?;
+        return Err(error);
+    }
     #[cfg(unix)]
     std::thread::spawn(move || { let _ = child.wait(); });
     Ok(format!("{key} started; the model may still be loading"))
