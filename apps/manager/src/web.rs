@@ -257,7 +257,7 @@ pub fn run(root: PathBuf, smoke: bool) -> Result<()> {
     let allowed = base.clone();
     let picker_runtime=runtime.clone();
     let ipc_startup=startup.clone();
-    let _webview=wry::WebViewBuilder::new_with_web_context(&mut context)
+    let webview = wry::WebViewBuilder::new_with_web_context(&mut context)
         .with_background_color((33,33,33,255)).with_url(format!("{base}/"))
         .with_initialization_script(js)
         .with_navigation_handler(move|url|url==format!("{allowed}/")||url.starts_with(&format!("{allowed}/#")))
@@ -273,7 +273,17 @@ pub fn run(root: PathBuf, smoke: bool) -> Result<()> {
                     std::thread::spawn(move||{let _=core::atomic_transient(&path,&status);});
                 }
             }
-        }).build(&window).map_err(err)?;
+        });
+    #[cfg(target_os = "linux")]
+    let _webview = {
+        use tao::platform::unix::WindowExtUnix;
+        use wry::WebViewBuilderExtUnix;
+
+        let container = window.default_vbox().ok_or("Orvyn window is missing its GTK container")?;
+        webview.build_gtk(container).map_err(err)?
+    };
+    #[cfg(not(target_os = "linux"))]
+    let _webview = webview.build(&window).map_err(err)?;
     startup.mark("webview","Preparing WebView");
     let deadline = Instant::now() + Duration::from_secs(10);
     event_loop.run(move |event, _, flow| {

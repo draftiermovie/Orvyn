@@ -103,6 +103,9 @@ jobs:
           bash scripts/build-desktop.sh
       - name: Package and smoke-test the Linux installer
         id: package
+        env:
+          # Xvfb has no GPU-backed buffers. Use WebKitGTK's software path in CI.
+          WEBKIT_DISABLE_DMABUF_RENDERER: "1"
         run: |
           bash scripts/deploy-desktop.sh
           bash scripts/package-portable.sh
