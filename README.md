@@ -1,6 +1,6 @@
 <p align="center">
   <a href="#quick-start" aria-label="Get started with Orvyn">
-    <img src=".github/banner.svg" alt="Orvyn — Your AI. Your workspace." width="100%">
+    <img src=".github/banner.svg" alt="Orvyn - Your AI. Your workspace." width="100%">
   </a>
 </p>
 
@@ -31,14 +31,14 @@ Orvyn brings AI chat, model discovery, documents, and **Opex Work** into a works
 
 ## Features
 
-- **Local chat and API connections** — use Orvyn 1, import a compatible GGUF model, or connect your preferred OpenAI-compatible provider.
-- **AI model library** — discover Hugging Face GGUF models across Chat, Code, Reasoning, and Vision categories, with queued downloads and SHA-256 verification.
-- **Opex Work** — browse a project, plan a task, review proposed changes, keep backups, and follow terminal output in a persistent task workspace.
-- **Plan mode** — discuss an approach before executing actions. Agent work pauses after eight automatic steps.
-- **Documents and sources** — import PDF, Word, Excel, text, and source files; ask questions using selected excerpts and view the sources supplied to the model.
-- **Portable by design** — keep app data alongside the executable and move the folder between writable locations. Models unload after 30 minutes of inactivity.
-- **English interface** — choose the response language and style in Settings, with startup diagnostics and experimental training reports available.
-- **Rust + React** — a native Rust host with a React, TypeScript, and Tailwind interface inside WebView2 on Windows, WebKitGTK on Linux, and WKWebView on macOS.
+- **Local chat and API connections** - use Orvyn 1, import a compatible GGUF model, or connect your preferred OpenAI-compatible provider.
+- **AI model library** - discover Hugging Face GGUF models across Chat, Code, Reasoning, and Vision categories, with queued downloads and SHA-256 verification.
+- **Opex Work** - browse a project, plan a task, review proposed changes, keep backups, and follow terminal output in a persistent task workspace.
+- **Plan mode** - discuss an approach before executing actions. Agent work pauses after eight automatic steps.
+- **Documents and sources** - import PDF, Word, Excel, text, and source files; ask questions using selected excerpts and view the sources supplied to the model.
+- **Portable by design** - keep app data alongside the executable and move the folder between writable locations. Models unload after 30 minutes of inactivity.
+- **English interface** - choose the response language and style in Settings, with startup diagnostics and experimental training reports available.
+- **Rust + React** - a native Rust host with a React, TypeScript, and Tailwind interface inside WebView2 on Windows, WebKitGTK on Linux, and WKWebView on macOS.
 
 > [!NOTE]
 > Orvyn is under active development. The model-library and English-language updates are in source; older packaged builds may not include them. Check the [release notes](docs/RELEASE-NOTES-0.7.0.md) and the source commit associated with a download.
@@ -48,7 +48,7 @@ Orvyn brings AI chat, model discovery, documents, and **Opex Work** into a works
 
 ![Orvyn Opex Work workspace](.github/opex-work.png)
 
-<p align="center"><sub>Opex Work — workspace preview from the browser integration tests.</sub></p>
+<p align="center"><sub>Opex Work - workspace preview from the browser integration tests.</sub></p>
 
 ## Quick start
 
